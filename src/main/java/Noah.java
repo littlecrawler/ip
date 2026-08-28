@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 public class Noah {
     public static void main(String[] args) {
         // ASCII-art banner generated using http://www.network-science.de/ascii/
@@ -17,10 +19,9 @@ public class Noah {
         + "N::::::N      N::::::::No:::::ooooo:::::oa::::a    a:::::a h:::::h     h:::::h\n"
         + "N::::::N       N:::::::No:::::::::::::::oa:::::aaaa::::::a h:::::h     h:::::h\n"
         + "N::::::N        N::::::N oo:::::::::::oo  a::::::::::aa:::ah:::::h     h:::::h\n"
-        + "NNNNNNNN         NNNNNNN   ooooooooooo     aaaaaaaaaa  aaaahhhhhhh     hhhhhhh\n";
-        String cutoffLine = "===============================================================================";
+        + "NNNNNNNN         NNNNNNN   ooooooooooo     aaaaaaaaaa  aaaahhhhhhh     hhhhhhh";
+        String cutoffLine = "\n===============================================================================\n";
         System.out.println(cutoffLine);
-        System.out.println();
         System.out.println(banner);
         System.out.println(cutoffLine);
         // Greeting wording refined with OpenAI Codex.
@@ -28,7 +29,19 @@ public class Noah {
         System.out.println("Hello! I'm Noah.");
         System.out.println("What can I do for you?");
         System.out.println(cutoffLine);
-        System.out.println("Farewell, Traveler!");
-        System.out.println("Hope to see you again soon.");
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            String userCommand = scanner.nextLine();
+            System.out.println(cutoffLine);
+            if (userCommand.equals("bye")) {
+                System.out.println("Farewell, Traveler!");
+                System.out.println("Hope to see you again soon.");
+                System.out.println(cutoffLine);
+                break;
+            }
+            System.out.println(userCommand);
+            System.out.println(cutoffLine);
+        }
+        scanner.close();
     }
 }
