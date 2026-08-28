@@ -1,6 +1,14 @@
 import java.util.Scanner;
 
+/**
+ * Runs a command-line task manager that stores and updates tasks.
+ */
 public class Noah {
+    /**
+     * Starts the program and processes user commands until the user exits.
+     *
+     * @param args command-line arguments; not used
+     */
     public static void main(String[] args) {
         // ASCII-art banner generated using http://www.network-science.de/ascii/
 
@@ -31,8 +39,7 @@ public class Noah {
         System.out.println(cutoffLine);
 
         Scanner scanner = new Scanner(System.in);
-        String[] tasks = new String[100];
-        boolean[] isDone = new boolean[100];
+        Task[] tasks = new Task[100];
         int taskCount = 0;
 
         while (true) {
@@ -46,21 +53,20 @@ public class Noah {
             } else if (userCommand.equals("list")) {
                 System.out.println("Here are the tasks in your list:");
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println((i + 1) + ".["
-                            + (isDone[i] ? "X" : " ") + "] " + tasks[i]);
+                    System.out.println((i + 1) + "." + tasks[i]);
                 }
             } else if (userCommand.startsWith("mark ")) {
                 int index = Integer.parseInt(userCommand.substring(5)) - 1;
-                isDone[index] = true;
+                tasks[index].markAsDone();
                 System.out.println("Nice! I've marked this task as done:");
-                System.out.println("  [X] " + tasks[index]);
+                System.out.println("  " + tasks[index]);
             } else if (userCommand.startsWith("unmark ")) {
                 int index = Integer.parseInt(userCommand.substring(7)) - 1;
-                isDone[index] = false;
+                tasks[index].unmarkAsDone();
                 System.out.println("OK, I've marked this task as not done yet:");
-                System.out.println("  [ ] " + tasks[index]);
+                System.out.println("  " + tasks[index]);
             } else {
-                tasks[taskCount++] = userCommand;
+                tasks[taskCount++] = new Task(userCommand);
                 System.out.println("added: " + userCommand);
             }
             System.out.println(cutoffLine);
