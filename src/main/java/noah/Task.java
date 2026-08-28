@@ -1,3 +1,5 @@
+package noah;
+
 // This class was implemented with assistance from OpenAI Codex.
 
 /**
@@ -11,7 +13,7 @@ public class Task {
      * Creates a task with the given description.
      * New tasks are not done by default.
      *
-     * @param description description of the task
+     * @param description Description of the task.
      */
     public Task(String description) {
         this.description = description;
@@ -35,7 +37,7 @@ public class Task {
     /**
      * Returns the symbol used to display the task's completion status.
      *
-     * @return {@code X} if the task is done, or a space otherwise
+     * @return {@code X} if the task is done, or a space otherwise.
      */
     public String getStatusIcon() {
         return isDone ? "X" : " ";
@@ -44,7 +46,7 @@ public class Task {
     /**
      * Returns the task in the format used when displaying the task list.
      *
-     * @return task status followed by its description
+     * @return Task status followed by its description.
      */
     @Override
     public String toString() {
