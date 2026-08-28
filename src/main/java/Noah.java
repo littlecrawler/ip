@@ -29,7 +29,11 @@ public class Noah {
         System.out.println("Hello! I'm Noah.");
         System.out.println("What can I do for you?");
         System.out.println(cutoffLine);
+
         Scanner scanner = new Scanner(System.in);
+        String[] tasks = new String[100];
+        int taskCount = 0;
+
         while (true) {
             String userCommand = scanner.nextLine();
             System.out.println(cutoffLine);
@@ -38,8 +42,14 @@ public class Noah {
                 System.out.println("Hope to see you again soon.");
                 System.out.println(cutoffLine);
                 break;
+            } else if (userCommand.equals("list")) {
+                for (int i = 0; i < taskCount; i++) {
+                    System.out.println(i + 1 + ". " + tasks[i]);
+                }
+            } else {
+                tasks[taskCount++] = userCommand;
+                System.out.println("added: " + userCommand);
             }
-            System.out.println(userCommand);
             System.out.println(cutoffLine);
         }
         scanner.close();
