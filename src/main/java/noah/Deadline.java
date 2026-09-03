@@ -3,9 +3,8 @@ package noah;
 /**
  * Represents a task that can be marked as done or not done.
  */
-public class Deadline {
-    protected String description;
-    protected boolean isDone;
+public class Deadline extends Task {
+    protected String by;
 
     /**
      * Creates a task with the given description.
@@ -14,31 +13,19 @@ public class Deadline {
      * @param description Description of the task.
      */
     public Deadline(String description) {
-        this.description = description;
-        this.isDone = false;
+        super(description);
     }
 
     /**
-     * Marks this task as done.
-     */
-    public void markAsDone() {
-        isDone = true;
-    }
-
-    /**
-     * Marks this task as not done.
-     */
-    public void unmarkAsDone() {
-        isDone = false;
-    }
-
-    /**
-     * Returns the symbol used to display the task's completion status.
+     * Creates a task with the given description and due date.
+     * New tasks are not done by default.
      *
-     * @return {@code X} if the task is done, or a space otherwise.
+     * @param description Description of the task.
+     * @param by The due date of the task.
      */
-    public String getStatusIcon() {
-        return isDone ? "X" : " ";
+    public Deadline(String description, String by) {
+        this(description);
+        this.by = by;
     }
 
     /**
@@ -48,10 +35,9 @@ public class Deadline {
      */
     @Override
     public String toString() {
-        if (description.contains(" /by ")) {
-            String[] split = description.split(" /by ");
-            return "[D][" + getStatusIcon() + "] " + split[0] + " (by: " + split[1] + ")";
+        if (by != null) {
+            return "[D]" + super.toString() + " (by: " + by + ")";
         }
-        return "[D][" + getStatusIcon() + "] " + description;
+        return "[D]" + super.toString();
     }
 }

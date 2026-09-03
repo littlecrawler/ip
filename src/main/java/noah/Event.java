@@ -3,9 +3,9 @@ package noah;
 /**
  * Represents a task that can be marked as done or not done.
  */
-public class Event {
-    protected String description;
-    protected boolean isDone;
+public class Event extends Task {
+    protected String from;
+    protected String to;
 
     /**
      * Creates a task with the given description.
@@ -14,31 +14,21 @@ public class Event {
      * @param description Description of the task.
      */
     public Event(String description) {
-        this.description = description;
-        this.isDone = false;
+        super(description);
     }
 
     /**
-     * Marks this task as done.
-     */
-    public void markAsDone() {
-        isDone = true;
-    }
-
-    /**
-     * Marks this task as not done.
-     */
-    public void unmarkAsDone() {
-        isDone = false;
-    }
-
-    /**
-     * Returns the symbol used to display the task's completion status.
+     * Creates a task with the given description and period.
+     * New tasks are not done by default.
      *
-     * @return {@code X} if the task is done, or a space otherwise.
+     * @param description Description of the task.
+     * @param from Start time.
+     * @param to End time.
      */
-    public String getStatusIcon() {
-        return isDone ? "X" : " ";
+    public Event(String description, String from, String to) {
+        super(description);
+        this.from = from;
+        this.to = to;
     }
 
     /**
@@ -48,10 +38,9 @@ public class Event {
      */
     @Override
     public String toString() {
-        if (description.contains(" /from ") && description.contains(" /to ")) {
-            String[] split = description.split(" /from | /to ");
-            return "[E][" + getStatusIcon() + "] " + split[0] + " (from: " + split[1] + " to: " + split[2] + ")";
+        if (from != null && to != null) {
+            return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
         }
-        return "[E][" + getStatusIcon() + "] " + description;
+        return "[E]" + super.toString();
     }
 }
