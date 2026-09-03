@@ -58,66 +58,98 @@ public class Noah {
                 System.out.println(SEPARATOR);
                 break;
             } else if (userCommand.equals("list")) {
-                System.out.println("Here are the tasks in your list:");
-                for (int i = 0; i < taskCount; i++) {
-                    System.out.println((i + 1) + "." + tasks[i]);
-                }
+                printTaskList(tasks, taskCount);
             } else if (userCommand.startsWith("mark ")) {
-                int index = Integer.parseInt(userCommand.substring(5)) - 1;
-                if (tasks[index] != null) {
-                    tasks[index].markAsDone();
-                    System.out.println("Nice! I've marked this task as done:");
-                    System.out.println("  " + tasks[index]);
-                } else {
-                    throw new IllegalStateException("No task is stored at position " + (index + 1));
-                }
+                markTask(tasks, userCommand);
             } else if (userCommand.startsWith("unmark ")) {
-                int index = Integer.parseInt(userCommand.substring(7)) - 1;
-                if (tasks[index] != null) {
-                    tasks[index].unmarkAsDone();
-                    System.out.println("OK, I've marked this task as not done yet:");
-                    System.out.println("  " + tasks[index]);
-                } else {
-                    throw new IllegalStateException("No task is stored at position " + (index + 1));
-                }
+                unmarkTask(tasks, userCommand);
             } else if (userCommand.startsWith("todo ")) {
-                String description = userCommand.substring(5);
-                tasks[taskCount] = new Todo(description);
-                System.out.println("Got it. I've added this task:");
-                System.out.println("  " + tasks[taskCount]);
-                taskCount++;
-                System.out.println("Now you have " + taskCount + " tasks in the list.");
+                taskCount = addTodoTask(tasks, taskCount, userCommand);
             } else if (userCommand.startsWith("deadline ")) {
-                String description = userCommand.substring(9);
-                if (description.contains(" /by ")) {
-                    String[] split = description.split(" /by ");
-                    tasks[taskCount] = new Deadline(split[0], split[1]);
-                } else {
-                    tasks[taskCount] = new Deadline(description);
-                }
-                System.out.println("Got it. I've added this task:");
-                System.out.println("  " + tasks[taskCount]);
-                taskCount++;
-                System.out.println("Now you have " + taskCount + " tasks in the list.");
+                taskCount = addDeadlineTask(tasks, taskCount, userCommand);
             } else if (userCommand.startsWith("event ")) {
-                String description = userCommand.substring(6);
-                if (description.contains(" /from ") && description.contains(" /to ")) {
-                    String[] split = description.split(" /from | /to ");
-                    tasks[taskCount] = new Event(split[0], split[1], split[2]);
-                } else {
-                    tasks[taskCount] = new Event(description);
-                }
-                System.out.println("Got it. I've added this task:");
-                System.out.println("  " + tasks[taskCount]);
-                taskCount++;
-                System.out.println("Now you have " + taskCount + " tasks in the list.");
+                taskCount = addEventTask(tasks, taskCount, userCommand);
             } else {
-                tasks[taskCount] = new Task(userCommand);
-                taskCount++;
-                System.out.println("added: " + userCommand);
+                taskCount = addGenericTask(tasks, taskCount, userCommand);
             }
             System.out.println(SEPARATOR);
         }
         scanner.close();
+    }
+
+    private static void printTaskList(Task[] tasks, int taskCount) {
+        System.out.println("Here are the tasks in your list:");
+        for (int i = 0; i < taskCount; i++) {
+            System.out.println((i + 1) + "." + tasks[i]);
+        }
+    }
+
+    private static void markTask(Task[] tasks, String userCommand) {
+        int index = Integer.parseInt(userCommand.substring(5)) - 1;
+        if (tasks[index] != null) {
+            tasks[index].markAsDone();
+            System.out.println("Nice! I've marked this task as done:");
+            System.out.println("  " + tasks[index]);
+        } else {
+            throw new IllegalStateException("No task is stored at position " + (index + 1));
+        }
+    }
+
+    private static void unmarkTask(Task[] tasks, String userCommand) {
+        int index = Integer.parseInt(userCommand.substring(7)) - 1;
+        if (tasks[index] != null) {
+            tasks[index].unmarkAsDone();
+            System.out.println("OK, I've marked this task as not done yet:");
+            System.out.println("  " + tasks[index]);
+        } else {
+            throw new IllegalStateException("No task is stored at position " + (index + 1));
+        }
+    }
+
+    private static int addTodoTask(Task[] tasks, int taskCount, String userCommand) {
+        String description = userCommand.substring(5);
+        tasks[taskCount] = new Todo(description);
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + tasks[taskCount]);
+        taskCount++;
+        System.out.println("Now you have " + taskCount + " tasks in the list.");
+        return taskCount;
+    }
+
+    private static int addDeadlineTask(Task[] tasks, int taskCount, String userCommand) {
+        String description = userCommand.substring(9);
+        if (description.contains(" /by ")) {
+            String[] split = description.split(" /by ");
+            tasks[taskCount] = new Deadline(split[0], split[1]);
+        } else {
+            tasks[taskCount] = new Deadline(description);
+        }
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + tasks[taskCount]);
+        taskCount++;
+        System.out.println("Now you have " + taskCount + " tasks in the list.");
+        return taskCount;
+    }
+
+    private static int addEventTask(Task[] tasks, int taskCount, String userCommand) {
+        String description = userCommand.substring(6);
+        if (description.contains(" /from ") && description.contains(" /to ")) {
+            String[] split = description.split(" /from | /to ");
+            tasks[taskCount] = new Event(split[0], split[1], split[2]);
+        } else {
+            tasks[taskCount] = new Event(description);
+        }
+        System.out.println("Got it. I've added this task:");
+        System.out.println("  " + tasks[taskCount]);
+        taskCount++;
+        System.out.println("Now you have " + taskCount + " tasks in the list.");
+        return taskCount;
+    }
+
+    private static int addGenericTask(Task[] tasks, int taskCount, String userCommand) {
+        tasks[taskCount] = new Task(userCommand);
+        taskCount++;
+        System.out.println("added: " + userCommand);
+        return taskCount;
     }
 }

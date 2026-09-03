@@ -39,6 +39,8 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 
 ## Acknowledgements
 
-OpenAI Codex was used by Cao Jingyuan as a coding assistant for the Level-3 and A-CodingStandard increments.
+OpenAI Codex was used by the project author as a coding assistant for the Level-3 and A-CodingStandard increments.
 Its use included generating and revising portions of the Java implementation, creating project-specific skills,
-and assisting with code review, testing, and Git guidance. Cao Jingyuan reviewed and tested the resulting changes.
+and assisting with code review, testing, and Git guidance. The project author reviewed and tested the resulting changes.
+OpenAI Codex was also used to review the code, refactor command handling,
+and verify behavior for the A-CodeQuality increment.
