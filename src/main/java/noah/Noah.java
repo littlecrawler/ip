@@ -47,6 +47,10 @@ public class Noah {
 
         Scanner scanner = new Scanner(System.in);
         Task[] tasks = new Task[MAX_TASKS];
+        Todo[] todos = new Todo[MAX_TASKS];
+        Deadline[] deadlines = new Deadline[MAX_TASKS];
+        Event[] events = new Event[MAX_TASKS];
+
         int taskCount = 0;
 
         while (true) {
@@ -60,20 +64,82 @@ public class Noah {
             } else if (userCommand.equals("list")) {
                 System.out.println("Here are the tasks in your list:");
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println((i + 1) + "." + tasks[i]);
+                    if (tasks[i] != null && todos[i] == null && deadlines[i] == null && events[i] == null) {
+                        System.out.println((i + 1) + "." + tasks[i]);
+                    } else if (tasks[i] == null && todos[i] != null && deadlines[i] == null && events[i] == null) {
+                        System.out.println((i + 1) + "." + todos[i]);
+                    } else if (tasks[i] == null && todos[i] == null && deadlines[i] != null && events[i] == null) {
+                        System.out.println((i + 1) + "." + deadlines[i]);
+                    } else {
+                        System.out.println((i + 1) + "." + events[i]);
+                    }
                 }
             } else if (userCommand.startsWith("mark ")) {
                 int index = Integer.parseInt(userCommand.substring(5)) - 1;
-                tasks[index].markAsDone();
-                System.out.println("Nice! I've marked this task as done:");
-                System.out.println("  " + tasks[index]);
+                if (tasks[index] != null) {
+                    tasks[index].markAsDone();
+                    System.out.println("Nice! I've marked this task as done:");
+                    System.out.println("  " + tasks[index]);
+                } else if (todos[index] != null) {
+                    todos[index].markAsDone();
+                    System.out.println("Nice! I've marked this task as done:");
+                    System.out.println("  " + todos[index]);
+                } else if (deadlines[index] != null) {
+                    deadlines[index].markAsDone();
+                    System.out.println("Nice! I've marked this task as done:");
+                    System.out.println("  " + deadlines[index]);
+                } else if (events[index] != null) {
+                    events[index].markAsDone();
+                    System.out.println("Nice! I've marked this task as done:");
+                    System.out.println("  " + events[index]);
+                } else {
+                    throw new IllegalStateException("No task is stored at position " + (index + 1));
+                }
             } else if (userCommand.startsWith("unmark ")) {
                 int index = Integer.parseInt(userCommand.substring(7)) - 1;
-                tasks[index].unmarkAsDone();
-                System.out.println("OK, I've marked this task as not done yet:");
-                System.out.println("  " + tasks[index]);
+                if (tasks[index] != null) {
+                    tasks[index].unmarkAsDone();
+                    System.out.println("OK, I've marked this task as not done yet:");
+                    System.out.println("  " + tasks[index]);
+                } else if (todos[index] != null) {
+                    todos[index].unmarkAsDone();
+                    System.out.println("OK, I've marked this task as not done yet:");
+                    System.out.println("  " + todos[index]);
+                } else if (deadlines[index] != null) {
+                    deadlines[index].unmarkAsDone();
+                    System.out.println("OK, I've marked this task as not done yet:");
+                    System.out.println("  " + deadlines[index]);
+                } else if (events[index] != null) {
+                    events[index].unmarkAsDone();
+                    System.out.println("OK, I've marked this task as not done yet:");
+                    System.out.println("  " + events[index]);
+                } else {
+                    throw new IllegalStateException("No task is stored at position " + (index + 1));
+                }
+            } else if (userCommand.startsWith("todo ")) {
+                String description = userCommand.substring(5);
+                todos[taskCount] = new Todo(description);
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + todos[taskCount]);
+                taskCount++;
+                System.out.println("Now you have " + taskCount + " tasks in the list.");
+            } else if (userCommand.startsWith("deadline ")) {
+                String description = userCommand.substring(9);
+                deadlines[taskCount] = new Deadline(description);
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + deadlines[taskCount]);
+                taskCount++;
+                System.out.println("Now you have " + taskCount + " tasks in the list.");
+            } else if (userCommand.startsWith("event ")) {
+                String description = userCommand.substring(6);
+                events[taskCount] = new Event(description);
+                System.out.println("Got it. I've added this task:");
+                System.out.println("  " + events[taskCount]);
+                taskCount++;
+                System.out.println("Now you have " + taskCount + " tasks in the list.");
             } else {
-                tasks[taskCount++] = new Task(userCommand);
+                tasks[taskCount] = new Task(userCommand);
+                taskCount++;
                 System.out.println("added: " + userCommand);
             }
             System.out.println(SEPARATOR);
