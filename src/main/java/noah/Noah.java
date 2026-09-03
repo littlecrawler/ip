@@ -108,37 +108,36 @@ public class Noah {
 
     private static int addTodoTask(Task[] tasks, int taskCount, String userCommand) {
         String description = userCommand.substring(5);
-        tasks[taskCount] = new Todo(description);
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + tasks[taskCount]);
-        taskCount++;
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
-        return taskCount;
+        Todo todo = new Todo(description);
+        return addTask(tasks, taskCount, todo);
     }
 
     private static int addDeadlineTask(Task[] tasks, int taskCount, String userCommand) {
         String description = userCommand.substring(9);
+        Deadline deadline;
         if (description.contains(" /by ")) {
             String[] split = description.split(" /by ");
-            tasks[taskCount] = new Deadline(split[0], split[1]);
+            deadline = new Deadline(split[0], split[1]);
         } else {
-            tasks[taskCount] = new Deadline(description);
+            deadline = new Deadline(description);
         }
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + tasks[taskCount]);
-        taskCount++;
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
-        return taskCount;
+        return addTask(tasks, taskCount, deadline);
     }
 
     private static int addEventTask(Task[] tasks, int taskCount, String userCommand) {
         String description = userCommand.substring(6);
+        Event event;
         if (description.contains(" /from ") && description.contains(" /to ")) {
             String[] split = description.split(" /from | /to ");
-            tasks[taskCount] = new Event(split[0], split[1], split[2]);
+            event = new Event(split[0], split[1], split[2]);
         } else {
-            tasks[taskCount] = new Event(description);
+            event = new Event(description);
         }
+        return addTask(tasks, taskCount, event);
+    }
+
+    private static int addTask(Task[] tasks, int taskCount, Task task) {
+        tasks[taskCount] = task;
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + tasks[taskCount]);
         taskCount++;
