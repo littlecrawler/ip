@@ -7,6 +7,11 @@ import java.util.Scanner;
  */
 public class Noah {
     private static final int MAX_TASKS = 100;
+    private static final String MARK_COMMAND_PREFIX = "mark ";
+    private static final String UNMARK_COMMAND_PREFIX = "unmark ";
+    private static final String TODO_COMMAND_PREFIX = "todo ";
+    private static final String DEADLINE_COMMAND_PREFIX = "deadline ";
+    private static final String EVENT_COMMAND_PREFIX = "event ";
     private static final String SEPARATOR =
             "\n===============================================================================\n";
 
@@ -59,15 +64,15 @@ public class Noah {
                 break;
             } else if (userCommand.equals("list")) {
                 printTaskList(tasks, taskCount);
-            } else if (userCommand.startsWith("mark ")) {
+            } else if (userCommand.startsWith(MARK_COMMAND_PREFIX)) {
                 markTask(tasks, userCommand);
-            } else if (userCommand.startsWith("unmark ")) {
+            } else if (userCommand.startsWith(UNMARK_COMMAND_PREFIX)) {
                 unmarkTask(tasks, userCommand);
-            } else if (userCommand.startsWith("todo ")) {
+            } else if (userCommand.startsWith(TODO_COMMAND_PREFIX)) {
                 taskCount = addTodoTask(tasks, taskCount, userCommand);
-            } else if (userCommand.startsWith("deadline ")) {
+            } else if (userCommand.startsWith(DEADLINE_COMMAND_PREFIX)) {
                 taskCount = addDeadlineTask(tasks, taskCount, userCommand);
-            } else if (userCommand.startsWith("event ")) {
+            } else if (userCommand.startsWith(EVENT_COMMAND_PREFIX)) {
                 taskCount = addEventTask(tasks, taskCount, userCommand);
             } else {
                 taskCount = addGenericTask(tasks, taskCount, userCommand);
@@ -85,7 +90,7 @@ public class Noah {
     }
 
     private static void markTask(Task[] tasks, String userCommand) {
-        int index = Integer.parseInt(userCommand.substring(5)) - 1;
+        int index = Integer.parseInt(userCommand.substring(MARK_COMMAND_PREFIX.length())) - 1;
         if (tasks[index] != null) {
             tasks[index].markAsDone();
             System.out.println("Nice! I've marked this task as done:");
@@ -96,7 +101,7 @@ public class Noah {
     }
 
     private static void unmarkTask(Task[] tasks, String userCommand) {
-        int index = Integer.parseInt(userCommand.substring(7)) - 1;
+        int index = Integer.parseInt(userCommand.substring(UNMARK_COMMAND_PREFIX.length())) - 1;
         if (tasks[index] != null) {
             tasks[index].unmarkAsDone();
             System.out.println("OK, I've marked this task as not done yet:");
@@ -107,13 +112,13 @@ public class Noah {
     }
 
     private static int addTodoTask(Task[] tasks, int taskCount, String userCommand) {
-        String description = userCommand.substring(5);
+        String description = userCommand.substring(TODO_COMMAND_PREFIX.length());
         Todo todo = new Todo(description);
         return addTask(tasks, taskCount, todo);
     }
 
     private static int addDeadlineTask(Task[] tasks, int taskCount, String userCommand) {
-        String description = userCommand.substring(9);
+        String description = userCommand.substring(DEADLINE_COMMAND_PREFIX.length());
         Deadline deadline;
         if (description.contains(" /by ")) {
             String[] split = description.split(" /by ");
@@ -125,7 +130,7 @@ public class Noah {
     }
 
     private static int addEventTask(Task[] tasks, int taskCount, String userCommand) {
-        String description = userCommand.substring(6);
+        String description = userCommand.substring(EVENT_COMMAND_PREFIX.length());
         Event event;
         if (description.contains(" /from ") && description.contains(" /to ")) {
             String[] split = description.split(" /from | /to ");
