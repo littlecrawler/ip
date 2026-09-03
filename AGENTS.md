@@ -33,6 +33,16 @@ Use the project-specific `seedu-git-standard` skill whenever a Git commit messag
 
 Ensure that Java 25 is used when running the application or build tasks. On macOS, use `sdk use java 25.0.3.fx-zulu` to switch to Java 25 if needed.
 
+## UI testing
+
+After every source-code update:
+
+* Review `test/ui-test-plan.md` and update it when intended console behavior changes.
+* Invoke the project-specific `test-ui` skill and run the relevant UI test cases.
+* Stop at the first failure and report the console input, actual output, and expected output.
+
+Do not change expected output merely to make a failing implementation pass.
+
 ## Git
 
 Use lightweight tags unless the user requests an annotated tag.
