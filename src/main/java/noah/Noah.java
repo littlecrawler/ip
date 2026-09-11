@@ -10,8 +10,8 @@ public class Noah {
     private static final String MARK_COMMAND = "mark";
     private static final String UNMARK_COMMAND = "unmark";
     private static final String TODO_COMMAND = "todo";
-    private static final String DEADLINE_COMMAND_PREFIX = "deadline ";
-    private static final String EVENT_COMMAND_PREFIX = "event ";
+    private static final String DEADLINE_COMMAND = "deadline";
+    private static final String EVENT_COMMAND = "event";
     private static final String SEPARATOR =
             "\n===============================================================================\n";
 
@@ -74,9 +74,11 @@ public class Noah {
                 } else if (userCommand.equals(TODO_COMMAND)
                         || userCommand.startsWith(TODO_COMMAND + " ")) {
                     taskCount = addTodoTask(tasks, taskCount, userCommand);
-                } else if (userCommand.startsWith(DEADLINE_COMMAND_PREFIX)) {
+                } else if (userCommand.equals(DEADLINE_COMMAND)
+                        || userCommand.startsWith(DEADLINE_COMMAND + " ")) {
                     taskCount = addDeadlineTask(tasks, taskCount, userCommand);
-                } else if (userCommand.startsWith(EVENT_COMMAND_PREFIX)) {
+                } else if (userCommand.equals(EVENT_COMMAND)
+                        || userCommand.startsWith(EVENT_COMMAND + " ")) {
                     taskCount = addEventTask(tasks, taskCount, userCommand);
                 } else {
                     throw new NoahException("I don't recognize that command. Please try again.");
@@ -159,24 +161,77 @@ public class Noah {
         return addTask(tasks, taskCount, todo);
     }
 
-    private static int addDeadlineTask(Task[] tasks, int taskCount, String userCommand) {
-        String description = userCommand.substring(DEADLINE_COMMAND_PREFIX.length());
+    private static int addDeadlineTask(Task[] tasks, int taskCount, String userCommand)
+            throws NoahException {
+        String description = userCommand.substring(DEADLINE_COMMAND.length()).trim();
+        if (description.isEmpty()) {
+            throw new NoahException(
+                    "A deadline needs a description. Try: deadline return book /by Sunday");
+        }
+
         Deadline deadline;
-        if (description.contains(" /by ")) {
-            String[] split = description.split(" /by ");
-            deadline = new Deadline(split[0], split[1]);
+        boolean hasBy = description.equals("/by")
+                || description.startsWith("/by ")
+                || description.endsWith(" /by")
+                || description.contains(" /by ");
+        if (hasBy) {
+            int byIndex = description.indexOf("/by");
+            String taskDescription = description.substring(0, byIndex).trim();
+            String by = description.substring(byIndex + "/by".length()).trim();
+            if (taskDescription.isEmpty() || by.isEmpty()) {
+                throw new NoahException(
+                        "A deadline needs a description and date. "
+                                + "Try: deadline return book /by Sunday");
+            }
+            deadline = new Deadline(taskDescription, by);
         } else {
             deadline = new Deadline(description);
         }
         return addTask(tasks, taskCount, deadline);
     }
 
-    private static int addEventTask(Task[] tasks, int taskCount, String userCommand) {
-        String description = userCommand.substring(EVENT_COMMAND_PREFIX.length());
+    private static int addEventTask(Task[] tasks, int taskCount, String userCommand)
+            throws NoahException {
+        String description = userCommand.substring(EVENT_COMMAND.length()).trim();
+        if (description.isEmpty()) {
+            throw new NoahException(
+                    "An event needs a description. Try: event meeting /from 2pm /to 4pm");
+        }
+
         Event event;
-        if (description.contains(" /from ") && description.contains(" /to ")) {
-            String[] split = description.split(" /from | /to ");
-            event = new Event(split[0], split[1], split[2]);
+        boolean hasFrom = description.equals("/from")
+                || description.startsWith("/from ")
+                || description.endsWith(" /from")
+                || description.contains(" /from ");
+        boolean hasTo = description.equals("/to")
+                || description.startsWith("/to ")
+                || description.endsWith(" /to")
+                || description.contains(" /to ");
+        if (hasFrom || hasTo) {
+            if (!hasFrom || !hasTo) {
+                throw new NoahException(
+                        "An event needs a description, start, and end. "
+                                + "Try: event meeting /from 2pm /to 4pm");
+            }
+
+            int fromIndex = description.indexOf("/from");
+            int toIndex = description.indexOf("/to");
+            if (fromIndex >= toIndex) {
+                throw new NoahException(
+                        "An event needs a description, start, and end. "
+                                + "Try: event meeting /from 2pm /to 4pm");
+            }
+
+            String taskDescription = description.substring(0, fromIndex).trim();
+            String from = description.substring(
+                    fromIndex + "/from".length(), toIndex).trim();
+            String to = description.substring(toIndex + "/to".length()).trim();
+            if (taskDescription.isEmpty() || from.isEmpty() || to.isEmpty()) {
+                throw new NoahException(
+                        "An event needs a description, start, and end. "
+                                + "Try: event meeting /from 2pm /to 4pm");
+            }
+            event = new Event(taskDescription, from, to);
         } else {
             event = new Event(description);
         }

@@ -40,6 +40,11 @@ task list.
 Aim: Verify that mark and unmark commands reject missing, non-numeric, and
 out-of-range task numbers without changing task state.
 
+### Reject invalid deadline and event details
+
+Aim: Verify that deadline and event commands reject empty descriptions and
+incomplete date delimiters without changing the task list.
+
 ## Machine-readable cases
 
 Keep this JSON block synchronized with the descriptions above. The
@@ -145,6 +150,38 @@ Keep this JSON block synchronized with the descriptions above. The
       "The task number must be a positive integer.",
       "OK, I've marked this task as not done yet:\n  [T][ ] read book",
       "Here are the tasks in your list:\n1.[T][ ] read book",
+      "Farewell, Traveler!\nHope to see you again soon."
+    ]
+  },
+  {
+    "name": "reject-invalid-deadline-and-event-details",
+    "aim": "Reject incomplete deadline and event details without changing valid tasks.",
+    "commands": [
+      "deadline",
+      "deadline /by Sunday",
+      "deadline return book /by",
+      "deadline return book",
+      "event",
+      "event /from Monday /to Tuesday",
+      "event project meeting /from Monday",
+      "event project meeting /to Tuesday",
+      "event project meeting /from Monday /to",
+      "event project meeting",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "A deadline needs a description. Try: deadline return book /by Sunday",
+      "A deadline needs a description and date. Try: deadline return book /by Sunday",
+      "A deadline needs a description and date. Try: deadline return book /by Sunday",
+      "Got it. I've added this task:\n  [D][ ] return book\nNow you have 1 tasks in the list.",
+      "An event needs a description. Try: event meeting /from 2pm /to 4pm",
+      "An event needs a description, start, and end. Try: event meeting /from 2pm /to 4pm",
+      "An event needs a description, start, and end. Try: event meeting /from 2pm /to 4pm",
+      "An event needs a description, start, and end. Try: event meeting /from 2pm /to 4pm",
+      "An event needs a description, start, and end. Try: event meeting /from 2pm /to 4pm",
+      "Got it. I've added this task:\n  [E][ ] project meeting\nNow you have 2 tasks in the list.",
+      "Here are the tasks in your list:\n1.[D][ ] return book\n2.[E][ ] project meeting",
       "Farewell, Traveler!\nHope to see you again soon."
     ]
   }
