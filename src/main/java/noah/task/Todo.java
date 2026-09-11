@@ -1,4 +1,4 @@
-package noah;
+package noah.task;
 
 /**
  * Represents a task that can be marked as done or not done.
