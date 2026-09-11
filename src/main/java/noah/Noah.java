@@ -2,6 +2,12 @@ package noah;
 
 import java.util.Scanner;
 
+import noah.exception.NoahException;
+import noah.task.Deadline;
+import noah.task.Event;
+import noah.task.Task;
+import noah.task.Todo;
+
 /**
  * Runs a command-line task manager that stores and updates tasks.
  */

@@ -142,9 +142,9 @@ try {
     $classDirectory = Join-Path $tempDirectory "classes"
     [IO.Directory]::CreateDirectory($classDirectory) | Out-Null
 
-    $sourceDirectory = Join-Path $projectRoot "src\main\java\noah"
+    $sourceDirectory = Join-Path $projectRoot "src\main\java"
     $sourceFiles = @(
-        Get-ChildItem -LiteralPath $sourceDirectory -Filter "*.java" -File |
+        Get-ChildItem -LiteralPath $sourceDirectory -Filter "*.java" -File -Recurse |
             Sort-Object Name |
             ForEach-Object { $_.FullName }
     )

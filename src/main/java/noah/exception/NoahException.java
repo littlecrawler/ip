@@ -1,4 +1,4 @@
-package noah;
+package noah.exception;
 
 /**
  * Represents an error caused by invalid user input.
