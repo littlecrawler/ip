@@ -9,7 +9,7 @@ public class Noah {
     private static final int MAX_TASKS = 100;
     private static final String MARK_COMMAND_PREFIX = "mark ";
     private static final String UNMARK_COMMAND_PREFIX = "unmark ";
-    private static final String TODO_COMMAND_PREFIX = "todo ";
+    private static final String TODO_COMMAND = "todo";
     private static final String DEADLINE_COMMAND_PREFIX = "deadline ";
     private static final String EVENT_COMMAND_PREFIX = "event ";
     private static final String SEPARATOR =
@@ -57,25 +57,30 @@ public class Noah {
         while (true) {
             String userCommand = scanner.nextLine();
             System.out.println(SEPARATOR);
-            if (userCommand.equals("bye")) {
-                System.out.println("Farewell, Traveler!");
-                System.out.println("Hope to see you again soon.");
-                System.out.println(SEPARATOR);
-                break;
-            } else if (userCommand.equals("list")) {
-                printTaskList(tasks, taskCount);
-            } else if (userCommand.startsWith(MARK_COMMAND_PREFIX)) {
-                markTask(tasks, userCommand);
-            } else if (userCommand.startsWith(UNMARK_COMMAND_PREFIX)) {
-                unmarkTask(tasks, userCommand);
-            } else if (userCommand.startsWith(TODO_COMMAND_PREFIX)) {
-                taskCount = addTodoTask(tasks, taskCount, userCommand);
-            } else if (userCommand.startsWith(DEADLINE_COMMAND_PREFIX)) {
-                taskCount = addDeadlineTask(tasks, taskCount, userCommand);
-            } else if (userCommand.startsWith(EVENT_COMMAND_PREFIX)) {
-                taskCount = addEventTask(tasks, taskCount, userCommand);
-            } else {
-                taskCount = addGenericTask(tasks, taskCount, userCommand);
+            try {
+                if (userCommand.equals("bye")) {
+                    System.out.println("Farewell, Traveler!");
+                    System.out.println("Hope to see you again soon.");
+                    System.out.println(SEPARATOR);
+                    break;
+                } else if (userCommand.equals("list")) {
+                    printTaskList(tasks, taskCount);
+                } else if (userCommand.startsWith(MARK_COMMAND_PREFIX)) {
+                    markTask(tasks, userCommand);
+                } else if (userCommand.startsWith(UNMARK_COMMAND_PREFIX)) {
+                    unmarkTask(tasks, userCommand);
+                } else if (userCommand.equals(TODO_COMMAND)
+                        || userCommand.startsWith(TODO_COMMAND + " ")) {
+                    taskCount = addTodoTask(tasks, taskCount, userCommand);
+                } else if (userCommand.startsWith(DEADLINE_COMMAND_PREFIX)) {
+                    taskCount = addDeadlineTask(tasks, taskCount, userCommand);
+                } else if (userCommand.startsWith(EVENT_COMMAND_PREFIX)) {
+                    taskCount = addEventTask(tasks, taskCount, userCommand);
+                } else {
+                    throw new NoahException("I don't recognize that command. Please try again.");
+                }
+            } catch (NoahException e) {
+                System.out.println(e.getMessage());
             }
             System.out.println(SEPARATOR);
         }
@@ -111,8 +116,13 @@ public class Noah {
         }
     }
 
-    private static int addTodoTask(Task[] tasks, int taskCount, String userCommand) {
-        String description = userCommand.substring(TODO_COMMAND_PREFIX.length());
+    private static int addTodoTask(Task[] tasks, int taskCount, String userCommand)
+            throws NoahException {
+        String description = userCommand.substring(TODO_COMMAND.length()).trim();
+        if (description.isEmpty()) {
+            throw new NoahException("A todo needs a description. Try: todo read book");
+        }
+
         Todo todo = new Todo(description);
         return addTask(tasks, taskCount, todo);
     }
@@ -147,13 +157,6 @@ public class Noah {
         System.out.println("  " + tasks[taskCount]);
         taskCount++;
         System.out.println("Now you have " + taskCount + " tasks in the list.");
-        return taskCount;
-    }
-
-    private static int addGenericTask(Task[] tasks, int taskCount, String userCommand) {
-        tasks[taskCount] = new Task(userCommand);
-        taskCount++;
-        System.out.println("added: " + userCommand);
         return taskCount;
     }
 }

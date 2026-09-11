@@ -30,6 +30,11 @@ polymorphic deadline output.
 Aim: Verify the intended fallback constructors when deadline or event timing
 information is omitted.
 
+### Reject empty todo and unknown commands
+
+Aim: Verify that invalid commands show helpful errors and do not change the
+task list.
+
 ## Machine-readable cases
 
 Keep this JSON block synchronized with the descriptions above. The
@@ -87,6 +92,26 @@ Keep this JSON block synchronized with the descriptions above. The
       "Got it. I've added this task:\n  [D][ ] return book\nNow you have 1 tasks in the list.",
       "Got it. I've added this task:\n  [E][ ] project meeting\nNow you have 2 tasks in the list.",
       "Here are the tasks in your list:\n1.[D][ ] return book\n2.[E][ ] project meeting",
+      "Farewell, Traveler!\nHope to see you again soon."
+    ]
+  },
+  {
+    "name": "reject-empty-todo-and-unknown-command",
+    "aim": "Reject invalid commands without changing the task list.",
+    "commands": [
+      "todo",
+      "todo read book",
+      "todoabc",
+      "blah",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "A todo needs a description. Try: todo read book",
+      "Got it. I've added this task:\n  [T][ ] read book\nNow you have 1 tasks in the list.",
+      "I don't recognize that command. Please try again.",
+      "I don't recognize that command. Please try again.",
+      "Here are the tasks in your list:\n1.[T][ ] read book",
       "Farewell, Traveler!\nHope to see you again soon."
     ]
   }
