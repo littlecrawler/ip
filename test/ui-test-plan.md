@@ -35,6 +35,11 @@ information is omitted.
 Aim: Verify that invalid commands show helpful errors and do not change the
 task list.
 
+### Reject invalid task numbers
+
+Aim: Verify that mark and unmark commands reject missing, non-numeric, and
+out-of-range task numbers without changing task state.
+
 ## Machine-readable cases
 
 Keep this JSON block synchronized with the descriptions above. The
@@ -111,6 +116,34 @@ Keep this JSON block synchronized with the descriptions above. The
       "Got it. I've added this task:\n  [T][ ] read book\nNow you have 1 tasks in the list.",
       "I don't recognize that command. Please try again.",
       "I don't recognize that command. Please try again.",
+      "Here are the tasks in your list:\n1.[T][ ] read book",
+      "Farewell, Traveler!\nHope to see you again soon."
+    ]
+  },
+  {
+    "name": "reject-invalid-task-numbers",
+    "aim": "Reject invalid mark and unmark task numbers without changing task state.",
+    "commands": [
+      "mark",
+      "mark abc",
+      "mark 1",
+      "todo read book",
+      "mark 2",
+      "mark 1",
+      "unmark 0",
+      "unmark 1",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "A task number is required. Try: mark 1",
+      "The task number must be a positive integer.",
+      "There is no task numbered 1.",
+      "Got it. I've added this task:\n  [T][ ] read book\nNow you have 1 tasks in the list.",
+      "There is no task numbered 2.",
+      "Nice! I've marked this task as done:\n  [T][X] read book",
+      "The task number must be a positive integer.",
+      "OK, I've marked this task as not done yet:\n  [T][ ] read book",
       "Here are the tasks in your list:\n1.[T][ ] read book",
       "Farewell, Traveler!\nHope to see you again soon."
     ]

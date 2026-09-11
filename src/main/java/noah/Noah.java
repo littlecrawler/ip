@@ -7,8 +7,8 @@ import java.util.Scanner;
  */
 public class Noah {
     private static final int MAX_TASKS = 100;
-    private static final String MARK_COMMAND_PREFIX = "mark ";
-    private static final String UNMARK_COMMAND_PREFIX = "unmark ";
+    private static final String MARK_COMMAND = "mark";
+    private static final String UNMARK_COMMAND = "unmark";
     private static final String TODO_COMMAND = "todo";
     private static final String DEADLINE_COMMAND_PREFIX = "deadline ";
     private static final String EVENT_COMMAND_PREFIX = "event ";
@@ -65,10 +65,12 @@ public class Noah {
                     break;
                 } else if (userCommand.equals("list")) {
                     printTaskList(tasks, taskCount);
-                } else if (userCommand.startsWith(MARK_COMMAND_PREFIX)) {
-                    markTask(tasks, userCommand);
-                } else if (userCommand.startsWith(UNMARK_COMMAND_PREFIX)) {
-                    unmarkTask(tasks, userCommand);
+                } else if (userCommand.equals(MARK_COMMAND)
+                        || userCommand.startsWith(MARK_COMMAND + " ")) {
+                    markTask(tasks, taskCount, userCommand);
+                } else if (userCommand.equals(UNMARK_COMMAND)
+                        || userCommand.startsWith(UNMARK_COMMAND + " ")) {
+                    unmarkTask(tasks, taskCount, userCommand);
                 } else if (userCommand.equals(TODO_COMMAND)
                         || userCommand.startsWith(TODO_COMMAND + " ")) {
                     taskCount = addTodoTask(tasks, taskCount, userCommand);
@@ -94,26 +96,56 @@ public class Noah {
         }
     }
 
-    private static void markTask(Task[] tasks, String userCommand) {
-        int index = Integer.parseInt(userCommand.substring(MARK_COMMAND_PREFIX.length())) - 1;
-        if (tasks[index] != null) {
-            tasks[index].markAsDone();
-            System.out.println("Nice! I've marked this task as done:");
-            System.out.println("  " + tasks[index]);
-        } else {
-            throw new IllegalStateException("No task is stored at position " + (index + 1));
+    private static void markTask(Task[] tasks, int taskCount, String userCommand)
+            throws NoahException {
+        String taskNumberText = userCommand.substring(MARK_COMMAND.length()).trim();
+        if (taskNumberText.isEmpty()) {
+            throw new NoahException("A task number is required. Try: mark 1");
         }
+
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(taskNumberText);
+        } catch (NumberFormatException e) {
+            throw new NoahException("The task number must be a positive integer.");
+        }
+        if (taskNumber <= 0) {
+            throw new NoahException("The task number must be a positive integer.");
+        }
+        if (taskNumber > taskCount) {
+            throw new NoahException("There is no task numbered " + taskNumber + ".");
+        }
+
+        int index = taskNumber - 1;
+        tasks[index].markAsDone();
+        System.out.println("Nice! I've marked this task as done:");
+        System.out.println("  " + tasks[index]);
     }
 
-    private static void unmarkTask(Task[] tasks, String userCommand) {
-        int index = Integer.parseInt(userCommand.substring(UNMARK_COMMAND_PREFIX.length())) - 1;
-        if (tasks[index] != null) {
-            tasks[index].unmarkAsDone();
-            System.out.println("OK, I've marked this task as not done yet:");
-            System.out.println("  " + tasks[index]);
-        } else {
-            throw new IllegalStateException("No task is stored at position " + (index + 1));
+    private static void unmarkTask(Task[] tasks, int taskCount, String userCommand)
+            throws NoahException {
+        String taskNumberText = userCommand.substring(UNMARK_COMMAND.length()).trim();
+        if (taskNumberText.isEmpty()) {
+            throw new NoahException("A task number is required. Try: unmark 1");
         }
+
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(taskNumberText);
+        } catch (NumberFormatException e) {
+            throw new NoahException("The task number must be a positive integer.");
+        }
+        if (taskNumber <= 0) {
+            throw new NoahException("The task number must be a positive integer.");
+        }
+        if (taskNumber > taskCount) {
+            throw new NoahException("There is no task numbered " + taskNumber + ".");
+        }
+
+        int index = taskNumber - 1;
+        tasks[index].unmarkAsDone();
+        System.out.println("OK, I've marked this task as not done yet:");
+        System.out.println("  " + tasks[index]);
     }
 
     private static int addTodoTask(Task[] tasks, int taskCount, String userCommand)
