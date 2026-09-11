@@ -238,7 +238,13 @@ public class Noah {
         return addTask(tasks, taskCount, event);
     }
 
-    private static int addTask(Task[] tasks, int taskCount, Task task) {
+    private static int addTask(Task[] tasks, int taskCount, Task task)
+            throws NoahException {
+        if (taskCount >= MAX_TASKS) {
+            throw new NoahException(
+                    "Your task list is full. Noah can store up to 100 tasks.");
+        }
+
         tasks[taskCount] = task;
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + tasks[taskCount]);

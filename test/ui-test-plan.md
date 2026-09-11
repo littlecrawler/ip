@@ -188,3 +188,15 @@ Keep this JSON block synchronized with the descriptions above. The
 ]
 ```
 <!-- TEST-CASES-END -->
+
+## Ad hoc stress case
+
+### Reject a task beyond the list capacity
+
+Aim: Verify that Noah accepts the first 100 tasks, rejects the 101st task with
+`Your task list is full. Noah can store up to 100 tasks.`, and then continues
+to accept `bye` normally.
+
+Run this case with the `test-ui` runner's ad hoc parameters. It is kept out of
+the JSON block because listing 100 identical setup commands would make the
+default test plan unnecessarily repetitive.
