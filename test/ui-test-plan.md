@@ -1,8 +1,9 @@
 # UI Test Plan
 
-This plan checks Noah's observable command-line behavior. Each test case starts
-with an empty task list in a fresh process. Expected output blocks correspond
-one-to-one with the commands and must appear exactly in the same order.
+This plan checks Noah's observable command-line behavior. Each standard test
+case starts with an empty task list in an isolated working directory and a
+fresh process. Expected output blocks correspond one-to-one with the commands
+and must appear exactly in the same order.
 
 The banner and separator lines are displayed in the transcript but are omitted
 from expected blocks because they do not describe command behavior.
@@ -188,6 +189,50 @@ Keep this JSON block synchronized with the descriptions above. The
 ]
 ```
 <!-- TEST-CASES-END -->
+
+## Cross-run persistence case
+
+### Save and load all task types
+
+Aim: Verify that todo, deadline, and event tasks, including completion state,
+are saved after changes and restored when Noah starts again in the same working
+directory. Also verify that a missing `data` directory and `noah.txt` file are
+created automatically.
+
+First run commands:
+
+1. `todo borrow book`
+2. `deadline return book /by Sunday`
+3. `event project meeting /from Mon 2pm /to 4pm`
+4. `mark 2`
+5. `bye`
+
+Second run commands in the same working directory:
+
+1. `list`
+2. `unmark 2`
+3. `bye`
+
+Expected list after restarting:
+
+```text
+Here are the tasks in your list:
+1.[T][ ] borrow book
+2.[D][X] return book (by: Sunday)
+3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+```
+
+Expected `data/noah.txt` after the second run:
+
+```text
+T | 0 | borrow book
+D | 0 | return book | Sunday
+E | 0 | project meeting | Mon 2pm | 4pm
+```
+
+Run both launches from one temporary working directory. This case is separate
+from the machine-readable block because it requires two Noah processes to
+share the same data file.
 
 ## Ad hoc stress case
 

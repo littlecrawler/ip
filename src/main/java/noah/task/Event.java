@@ -32,6 +32,17 @@ public class Event extends Task {
     }
 
     /**
+     * Returns this event in the format used by the data file.
+     *
+     * @return Serialized event data.
+     */
+    @Override
+    public String toDataString() {
+        String data = "E | " + (isDone ? "1" : "0") + " | " + description;
+        return from == null || to == null ? data : data + " | " + from + " | " + to;
+    }
+
+    /**
      * Returns the task in the format used when displaying the task list.
      *
      * @return Task status followed by its description.
