@@ -191,11 +191,11 @@ Keep this JSON block synchronized with the descriptions above. The
 
 ## Ad hoc stress case
 
-### Reject a task beyond the list capacity
+### Accept tasks beyond the old fixed capacity
 
-Aim: Verify that Noah accepts the first 100 tasks, rejects the 101st task with
-`Your task list is full. Noah can store up to 100 tasks.`, and then continues
-to accept `bye` normally.
+Aim: Verify that Noah accepts 101 tasks and reports 101 tasks in the list after
+the final addition, demonstrating that task storage is no longer limited by a
+fixed-size array.
 
 Run this case with the `test-ui` runner's ad hoc parameters. It is kept out of
 the JSON block because listing 100 identical setup commands would make the
