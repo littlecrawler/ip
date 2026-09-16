@@ -1,5 +1,6 @@
 package noah;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import noah.exception.NoahException;
@@ -12,9 +13,9 @@ import noah.task.Todo;
  * Runs a command-line task manager that stores and updates tasks.
  */
 public class Noah {
-    private static final int MAX_TASKS = 100;
     private static final String MARK_COMMAND = "mark";
     private static final String UNMARK_COMMAND = "unmark";
+    private static final String DELETE_COMMAND = "delete";
     private static final String TODO_COMMAND = "todo";
     private static final String DEADLINE_COMMAND = "deadline";
     private static final String EVENT_COMMAND = "event";
@@ -57,8 +58,7 @@ public class Noah {
         System.out.println(SEPARATOR);
 
         Scanner scanner = new Scanner(System.in);
-        Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
 
         while (true) {
             String userCommand = scanner.nextLine();
@@ -70,22 +70,25 @@ public class Noah {
                     System.out.println(SEPARATOR);
                     break;
                 } else if (userCommand.equals("list")) {
-                    printTaskList(tasks, taskCount);
+                    printTaskList(tasks);
+                } else if (userCommand.equals(DELETE_COMMAND)
+                        || userCommand.startsWith(DELETE_COMMAND + " ")) {
+                    deleteTask(tasks, userCommand);
                 } else if (userCommand.equals(MARK_COMMAND)
                         || userCommand.startsWith(MARK_COMMAND + " ")) {
-                    markTask(tasks, taskCount, userCommand);
+                    markTask(tasks, userCommand);
                 } else if (userCommand.equals(UNMARK_COMMAND)
                         || userCommand.startsWith(UNMARK_COMMAND + " ")) {
-                    unmarkTask(tasks, taskCount, userCommand);
+                    unmarkTask(tasks, userCommand);
                 } else if (userCommand.equals(TODO_COMMAND)
                         || userCommand.startsWith(TODO_COMMAND + " ")) {
-                    taskCount = addTodoTask(tasks, taskCount, userCommand);
+                    addTodoTask(tasks, userCommand);
                 } else if (userCommand.equals(DEADLINE_COMMAND)
                         || userCommand.startsWith(DEADLINE_COMMAND + " ")) {
-                    taskCount = addDeadlineTask(tasks, taskCount, userCommand);
+                    addDeadlineTask(tasks, userCommand);
                 } else if (userCommand.equals(EVENT_COMMAND)
                         || userCommand.startsWith(EVENT_COMMAND + " ")) {
-                    taskCount = addEventTask(tasks, taskCount, userCommand);
+                    addEventTask(tasks, userCommand);
                 } else {
                     throw new NoahException("I don't recognize that command. Please try again.");
                 }
@@ -97,44 +100,79 @@ public class Noah {
         scanner.close();
     }
 
-    private static void printTaskList(Task[] tasks, int taskCount) {
+    /**
+     * Prints all stored tasks in their displayed order.
+     *
+     * @param tasks Tasks currently stored.
+     */
+    private static void printTaskList(ArrayList<Task> tasks) {
         System.out.println("Here are the tasks in your list:");
-        for (int i = 0; i < taskCount; i++) {
-            System.out.println((i + 1) + "." + tasks[i]);
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println((i + 1) + "." + tasks.get(i));
         }
     }
 
-    private static void markTask(Task[] tasks, int taskCount, String userCommand)
+    /**
+     * Marks the task selected by its displayed task number as done.
+     *
+     * @param tasks Tasks currently stored.
+     * @param userCommand Full command entered by the user.
+     * @throws NoahException If the task number is missing or invalid.
+     */
+    private static void markTask(ArrayList<Task> tasks, String userCommand)
             throws NoahException {
-        String taskNumberText = userCommand.substring(MARK_COMMAND.length()).trim();
-        if (taskNumberText.isEmpty()) {
-            throw new NoahException("A task number is required. Try: mark 1");
-        }
-
-        int taskNumber;
-        try {
-            taskNumber = Integer.parseInt(taskNumberText);
-        } catch (NumberFormatException e) {
-            throw new NoahException("The task number must be a positive integer.");
-        }
-        if (taskNumber <= 0) {
-            throw new NoahException("The task number must be a positive integer.");
-        }
-        if (taskNumber > taskCount) {
-            throw new NoahException("There is no task numbered " + taskNumber + ".");
-        }
-
-        int index = taskNumber - 1;
-        tasks[index].markAsDone();
+        int index = parseTaskIndex(tasks, userCommand, MARK_COMMAND);
+        tasks.get(index).markAsDone();
         System.out.println("Nice! I've marked this task as done:");
-        System.out.println("  " + tasks[index]);
+        System.out.println("  " + tasks.get(index));
     }
 
-    private static void unmarkTask(Task[] tasks, int taskCount, String userCommand)
+    /**
+     * Marks the task selected by its displayed task number as not done.
+     *
+     * @param tasks Tasks currently stored.
+     * @param userCommand Full command entered by the user.
+     * @throws NoahException If the task number is missing or invalid.
+     */
+    private static void unmarkTask(ArrayList<Task> tasks, String userCommand)
             throws NoahException {
-        String taskNumberText = userCommand.substring(UNMARK_COMMAND.length()).trim();
+        int index = parseTaskIndex(tasks, userCommand, UNMARK_COMMAND);
+        tasks.get(index).unmarkAsDone();
+        System.out.println("OK, I've marked this task as not done yet:");
+        System.out.println("  " + tasks.get(index));
+    }
+
+    /**
+     * Deletes the task selected by its displayed task number.
+     *
+     * @param tasks Tasks currently stored.
+     * @param userCommand Full command entered by the user.
+     * @throws NoahException If the task number is missing or invalid.
+     */
+    private static void deleteTask(ArrayList<Task> tasks, String userCommand)
+            throws NoahException {
+        int index = parseTaskIndex(tasks, userCommand, DELETE_COMMAND);
+        Task removedTask = tasks.remove(index);
+
+        System.out.println("Noted. I've removed this task:");
+        System.out.println("  " + removedTask);
+        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+    }
+
+    /**
+     * Parses and validates the task number supplied after a command word.
+     *
+     * @param tasks Tasks currently stored.
+     * @param userCommand Full command entered by the user.
+     * @param command Command word whose task number is being parsed.
+     * @return Zero-based index of the selected task.
+     * @throws NoahException If the task number is missing or invalid.
+     */
+    private static int parseTaskIndex(ArrayList<Task> tasks, String userCommand,
+            String command) throws NoahException {
+        String taskNumberText = userCommand.substring(command.length()).trim();
         if (taskNumberText.isEmpty()) {
-            throw new NoahException("A task number is required. Try: unmark 1");
+            throw new NoahException("A task number is required. Try: " + command + " 1");
         }
 
         int taskNumber;
@@ -146,17 +184,21 @@ public class Noah {
         if (taskNumber <= 0) {
             throw new NoahException("The task number must be a positive integer.");
         }
-        if (taskNumber > taskCount) {
+        if (taskNumber > tasks.size()) {
             throw new NoahException("There is no task numbered " + taskNumber + ".");
         }
 
-        int index = taskNumber - 1;
-        tasks[index].unmarkAsDone();
-        System.out.println("OK, I've marked this task as not done yet:");
-        System.out.println("  " + tasks[index]);
+        return taskNumber - 1;
     }
 
-    private static int addTodoTask(Task[] tasks, int taskCount, String userCommand)
+    /**
+     * Creates and adds a todo task from the user's command.
+     *
+     * @param tasks Tasks currently stored.
+     * @param userCommand Full command entered by the user.
+     * @throws NoahException If the todo description is missing.
+     */
+    private static void addTodoTask(ArrayList<Task> tasks, String userCommand)
             throws NoahException {
         String description = userCommand.substring(TODO_COMMAND.length()).trim();
         if (description.isEmpty()) {
@@ -164,10 +206,17 @@ public class Noah {
         }
 
         Todo todo = new Todo(description);
-        return addTask(tasks, taskCount, todo);
+        addTask(tasks, todo);
     }
 
-    private static int addDeadlineTask(Task[] tasks, int taskCount, String userCommand)
+    /**
+     * Creates and adds a deadline task from the user's command.
+     *
+     * @param tasks Tasks currently stored.
+     * @param userCommand Full command entered by the user.
+     * @throws NoahException If required deadline details are missing.
+     */
+    private static void addDeadlineTask(ArrayList<Task> tasks, String userCommand)
             throws NoahException {
         String description = userCommand.substring(DEADLINE_COMMAND.length()).trim();
         if (description.isEmpty()) {
@@ -193,10 +242,17 @@ public class Noah {
         } else {
             deadline = new Deadline(description);
         }
-        return addTask(tasks, taskCount, deadline);
+        addTask(tasks, deadline);
     }
 
-    private static int addEventTask(Task[] tasks, int taskCount, String userCommand)
+    /**
+     * Creates and adds an event task from the user's command.
+     *
+     * @param tasks Tasks currently stored.
+     * @param userCommand Full command entered by the user.
+     * @throws NoahException If required event details are missing.
+     */
+    private static void addEventTask(ArrayList<Task> tasks, String userCommand)
             throws NoahException {
         String description = userCommand.substring(EVENT_COMMAND.length()).trim();
         if (description.isEmpty()) {
@@ -241,21 +297,19 @@ public class Noah {
         } else {
             event = new Event(description);
         }
-        return addTask(tasks, taskCount, event);
+        addTask(tasks, event);
     }
 
-    private static int addTask(Task[] tasks, int taskCount, Task task)
-            throws NoahException {
-        if (taskCount >= MAX_TASKS) {
-            throw new NoahException(
-                    "Your task list is full. Noah can store up to 100 tasks.");
-        }
-
-        tasks[taskCount] = task;
+    /**
+     * Adds a task and reports the updated number of stored tasks.
+     *
+     * @param tasks Tasks currently stored.
+     * @param task Task to add.
+     */
+    private static void addTask(ArrayList<Task> tasks, Task task) {
+        tasks.add(task);
         System.out.println("Got it. I've added this task:");
-        System.out.println("  " + tasks[taskCount]);
-        taskCount++;
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
-        return taskCount;
+        System.out.println("  " + task);
+        System.out.println("Now you have " + tasks.size() + " tasks in the list.");
     }
 }
