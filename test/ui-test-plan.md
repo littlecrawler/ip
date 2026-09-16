@@ -25,6 +25,16 @@ tasks and that `list` preserves their order.
 Aim: Verify that status changes inherited from `Task` are reflected through
 polymorphic deadline output.
 
+### Delete a task and renumber the remaining tasks
+
+Aim: Verify that deleting a numbered task reports the removed task and shifts
+later tasks forward in the displayed list.
+
+### Reject invalid delete task numbers
+
+Aim: Verify that delete rejects missing, non-numeric, non-positive, and
+out-of-range task numbers without changing the task list.
+
 ### Accept tasks without date delimiters
 
 Aim: Verify the intended fallback constructors when deadline or event timing
@@ -86,6 +96,54 @@ Keep this JSON block synchronized with the descriptions above. The
       "Nice! I've marked this task as done:\n  [D][X] return book (by: Sunday)",
       "OK, I've marked this task as not done yet:\n  [D][ ] return book (by: Sunday)",
       "Here are the tasks in your list:\n1.[D][ ] return book (by: Sunday)",
+      "Farewell, Traveler!\nHope to see you again soon."
+    ]
+  },
+  {
+    "name": "delete-task-and-renumber",
+    "aim": "Delete a numbered task and renumber the remaining tasks.",
+    "commands": [
+      "todo read book",
+      "deadline return book /by Sunday",
+      "event project meeting /from Mon 2pm /to 4pm",
+      "mark 2",
+      "delete 2",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "Got it. I've added this task:\n  [T][ ] read book\nNow you have 1 tasks in the list.",
+      "Got it. I've added this task:\n  [D][ ] return book (by: Sunday)\nNow you have 2 tasks in the list.",
+      "Got it. I've added this task:\n  [E][ ] project meeting (from: Mon 2pm to: 4pm)\nNow you have 3 tasks in the list.",
+      "Nice! I've marked this task as done:\n  [D][X] return book (by: Sunday)",
+      "Noted. I've removed this task:\n  [D][X] return book (by: Sunday)\nNow you have 2 tasks in the list.",
+      "Here are the tasks in your list:\n1.[T][ ] read book\n2.[E][ ] project meeting (from: Mon 2pm to: 4pm)",
+      "Farewell, Traveler!\nHope to see you again soon."
+    ]
+  },
+  {
+    "name": "reject-invalid-delete-task-numbers",
+    "aim": "Reject invalid delete task numbers without changing the task list.",
+    "commands": [
+      "delete",
+      "delete abc",
+      "delete 0",
+      "delete 1",
+      "todo read book",
+      "delete 2",
+      "deleteabc",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "A task number is required. Try: delete 1",
+      "The task number must be a positive integer.",
+      "The task number must be a positive integer.",
+      "There is no task numbered 1.",
+      "Got it. I've added this task:\n  [T][ ] read book\nNow you have 1 tasks in the list.",
+      "There is no task numbered 2.",
+      "I don't recognize that command. Please try again.",
+      "Here are the tasks in your list:\n1.[T][ ] read book",
       "Farewell, Traveler!\nHope to see you again soon."
     ]
   },
