@@ -44,6 +44,15 @@ public class Task {
     }
 
     /**
+     * Returns this task in the format used by the data file.
+     *
+     * @return Serialized task data.
+     */
+    public String toDataString() {
+        return "T | " + (isDone ? "1" : "0") + " | " + description;
+    }
+
+    /**
      * Returns the task in the format used when displaying the task list.
      *
      * @return Task status followed by its description.

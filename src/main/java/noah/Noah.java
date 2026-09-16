@@ -1,9 +1,11 @@
 package noah;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import noah.exception.NoahException;
+import noah.storage.Storage;
 import noah.task.Deadline;
 import noah.task.Event;
 import noah.task.Task;
@@ -19,6 +21,7 @@ public class Noah {
     private static final String TODO_COMMAND = "todo";
     private static final String DEADLINE_COMMAND = "deadline";
     private static final String EVENT_COMMAND = "event";
+    private static final Path DATA_FILE_PATH = Path.of("data", "noah.txt");
     private static final String SEPARATOR =
             "\n===============================================================================\n";
 
@@ -58,7 +61,8 @@ public class Noah {
         System.out.println(SEPARATOR);
 
         Scanner scanner = new Scanner(System.in);
-        ArrayList<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage(DATA_FILE_PATH);
+        ArrayList<Task> tasks = loadTasks(storage);
 
         while (true) {
             String userCommand = scanner.nextLine();
@@ -74,21 +78,27 @@ public class Noah {
                 } else if (userCommand.equals(DELETE_COMMAND)
                         || userCommand.startsWith(DELETE_COMMAND + " ")) {
                     deleteTask(tasks, userCommand);
+                    storage.saveTasks(tasks);
                 } else if (userCommand.equals(MARK_COMMAND)
                         || userCommand.startsWith(MARK_COMMAND + " ")) {
                     markTask(tasks, userCommand);
+                    storage.saveTasks(tasks);
                 } else if (userCommand.equals(UNMARK_COMMAND)
                         || userCommand.startsWith(UNMARK_COMMAND + " ")) {
                     unmarkTask(tasks, userCommand);
+                    storage.saveTasks(tasks);
                 } else if (userCommand.equals(TODO_COMMAND)
                         || userCommand.startsWith(TODO_COMMAND + " ")) {
                     addTodoTask(tasks, userCommand);
+                    storage.saveTasks(tasks);
                 } else if (userCommand.equals(DEADLINE_COMMAND)
                         || userCommand.startsWith(DEADLINE_COMMAND + " ")) {
                     addDeadlineTask(tasks, userCommand);
+                    storage.saveTasks(tasks);
                 } else if (userCommand.equals(EVENT_COMMAND)
                         || userCommand.startsWith(EVENT_COMMAND + " ")) {
                     addEventTask(tasks, userCommand);
+                    storage.saveTasks(tasks);
                 } else {
                     throw new NoahException("I don't recognize that command. Please try again.");
                 }
@@ -98,6 +108,22 @@ public class Noah {
             System.out.println(SEPARATOR);
         }
         scanner.close();
+    }
+
+    /**
+     * Loads saved tasks, or starts with an empty list if loading fails.
+     *
+     * @param storage Storage used to load tasks.
+     * @return Tasks loaded successfully, or an empty list after an error.
+     */
+    private static ArrayList<Task> loadTasks(Storage storage) {
+        try {
+            return storage.loadTasks();
+        } catch (NoahException e) {
+            System.out.println(e.getMessage());
+            System.out.println(SEPARATOR);
+            return new ArrayList<>();
+        }
     }
 
     /**

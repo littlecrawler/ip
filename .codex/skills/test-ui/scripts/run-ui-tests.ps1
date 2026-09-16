@@ -166,7 +166,9 @@ try {
     Write-Output "Java runtime: $($javaVersion.Split([Environment]::NewLine)[0])"
     Write-Output ""
 
+    $testCaseNumber = 0
     foreach ($testCase in $testCases) {
+        $testCaseNumber++
         $caseCommands = @($testCase.commands)
         $caseExpectedOutputs = @($testCase.expectedOutputs)
 
@@ -188,11 +190,21 @@ try {
         $inputText = (
             $caseCommands -join [Environment]::NewLine
         ) + [Environment]::NewLine
-        $runOutput = @(
-            $inputText |
-                & $javaCommand.Source -cp $classDirectory noah.Noah 2>&1
+        $caseDirectory = Join-Path $tempDirectory (
+            "case-" + $testCaseNumber
         )
-        $runExitCode = $LASTEXITCODE
+        [IO.Directory]::CreateDirectory($caseDirectory) | Out-Null
+
+        Push-Location -LiteralPath $caseDirectory
+        try {
+            $runOutput = @(
+                $inputText |
+                    & $javaCommand.Source -cp $classDirectory noah.Noah 2>&1
+            )
+            $runExitCode = $LASTEXITCODE
+        } finally {
+            Pop-Location
+        }
         $actualOutput = (
             $runOutput | ForEach-Object { $_.ToString() }
         ) -join "`n"

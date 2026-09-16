@@ -29,6 +29,17 @@ public class Deadline extends Task {
     }
 
     /**
+     * Returns this deadline in the format used by the data file.
+     *
+     * @return Serialized deadline data.
+     */
+    @Override
+    public String toDataString() {
+        String data = "D | " + (isDone ? "1" : "0") + " | " + description;
+        return by == null ? data : data + " | " + by;
+    }
+
+    /**
      * Returns the task in the format used when displaying the task list.
      *
      * @return Task status followed by its description.
