@@ -42,6 +42,34 @@ public class TaskList {
     }
 
     /**
+     * Finds the first task with identical type, description, and scheduling details.
+     * Completion status does not affect matching, and the list is not changed.
+     *
+     * @param candidate Task being considered for addition.
+     * @return One-based number of the first duplicate, or zero if none exists.
+     */
+    public int findDuplicate(Task candidate) {
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).hasSameDetails(candidate)) {
+                return i + 1;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Removes every task from this list, including completed tasks.
+     * The caller is responsible for saving the empty list.
+     *
+     * @return Number of tasks removed, or zero if the list was already empty.
+     */
+    public int clear() {
+        int removedCount = tasks.size();
+        tasks.clear();
+        return removedCount;
+    }
+
+    /**
      * Deletes the task selected by its displayed number.
      *
      * @param taskNumber One-based task number shown to the user.

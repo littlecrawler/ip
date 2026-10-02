@@ -12,7 +12,7 @@ import noah.task.Todo;
  */
 public final class Parser {
     private static final String UNKNOWN_COMMAND_MESSAGE =
-            "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.";
+            "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)";
 
     /**
      * Prevents instantiation because parsing does not require stored state.
@@ -22,17 +22,26 @@ public final class Parser {
 
     /**
      * Identifies a supported command word.
-     * The list and bye commands must be entered without arguments.
+     * The list, clear, and bye commands must be entered without arguments.
+     * Normalizes yes/y and no/n confirmation replies regardless of case or surrounding spaces.
      *
      * @param userCommand Full command entered by the user.
      * @return Recognized command word.
      * @throws NoahException If the command is not supported.
      */
     public static String parseCommandWord(String userCommand) throws NoahException {
+        String response = userCommand.trim();
+        if (response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")) {
+            return "yes";
+        }
+        if (response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")) {
+            return "no";
+        }
         int spaceIndex = userCommand.indexOf(' ');
         String command = spaceIndex == -1 ? userCommand : userCommand.substring(0, spaceIndex);
         switch (command) {
         case "list":
+        case "clear":
         case "bye":
             if (!userCommand.equals(command)) {
                 throw new NoahException(UNKNOWN_COMMAND_MESSAGE);
