@@ -88,6 +88,9 @@ public class Noah {
         case "list":
             ui.showTaskList(tasks.getTasks());
             return false;
+        case "find":
+            ui.showMatchingTasks(tasks.find(Parser.parseFindKeyword(userCommand)));
+            return false;
         case "todo":
         case "deadline":
         case "event":
