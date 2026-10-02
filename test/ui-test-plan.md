@@ -81,6 +81,35 @@ rejected command must leave tasks unchanged and allow the next command.
 Aim: Preserve descriptions, dates, and task numbers when extra spaces separate
 the command word, arguments, or date delimiters.
 
+### Accept calendar dates and format them for display
+
+Aim: Parse ISO deadline dates and display English month names. Accept leap
+days in 2024 and 2000, and display a single-digit day without a leading zero.
+
+### Validate explicit numeric deadline dates
+
+Aim: Reject impossible or malformed numeric dates and their attached clock times.
+Existing tasks must survive rejected commands. Free-text deadline labels remain
+supported, including new input using Sunday, June 6th, Mon 2pm, or 2pm.
+
+### Accept both date formats with optional time
+
+Aim: Accept `yyyy-MM-dd` and `d/M/yyyy` (day first), optionally followed by
+`HH:mm` or `HHmm` in 24-hour time. Date-only input must not acquire a time.
+Formatting, marking, and unmarking must preserve any explicitly supplied time.
+
+### Accept clock boundaries and delete dated tasks
+
+Aim: Accept midnight, 23:59, and extra argument spaces. Delete a timed deadline
+and verify the remaining tasks are renumbered correctly.
+
+### Create and manage legacy text deadlines
+
+Aim: Accept the old free-text /by values when creating new tasks, not just when
+loading saved tasks. Check listing, mark, unmark, delete, and renumbering.
+Keep the first 11 machine-readable cases identical to commit 026a9c9 so the
+new formats supplement the original behavior instead of replacing its tests.
+
 ## Machine-readable cases
 
 Keep this JSON block synchronized with the descriptions above. The
@@ -344,6 +373,178 @@ Keep this JSON block synchronized with the descriptions above. The
       "Quest board, coming right up! Here are your tasks:\n1.[D][ ] return book (by: Sunday)\n2.[E][ ] meeting (from: Monday to: Tuesday)",
       "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
     ]
+  },
+  {
+    "name": "accept-calendar-dates-and-format-for-display",
+    "aim": "Parse ISO dates, accept leap days, and display English month names.",
+    "commands": [
+      "deadline return book /by 2019-10-15",
+      "deadline leap day /by 2024-02-29",
+      "deadline century leap day /by 2000-02-29",
+      "deadline new year /by 2026-01-01",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] return book (by: Oct 15 2019)\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [D][ ] leap day (by: Feb 29 2024)\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] century leap day (by: Feb 29 2000)\nNow you have 3 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] new year (by: Jan 1 2026)\nNow you have 4 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] return book (by: Oct 15 2019)\n2.[D][ ] leap day (by: Feb 29 2024)\n3.[D][ ] century leap day (by: Feb 29 2000)\n4.[D][ ] new year (by: Jan 1 2026)",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "reject-invalid-deadline-dates",
+    "aim": "Validate explicit numeric dates and their times while preserving the existing task list.",
+    "commands": [
+      "deadline keep me /by 2026-10-04",
+      "deadline invalid date /by 2026-02-29",
+      "deadline invalid date /by 2024-02-30",
+      "deadline invalid date /by 1900-02-29",
+      "deadline invalid date /by 2026-04-31",
+      "deadline invalid date /by 2026-13-01",
+      "deadline invalid date /by 2026-00-10",
+      "deadline invalid date /by 2026-01-00",
+      "deadline invalid date /by 2026-2-3",
+      "deadline invalid date /by 31/4/2026",
+      "deadline invalid date /by 29/2/1900",
+      "deadline invalid date /by 12/31/2019",
+      "deadline invalid date /by 0000-01-01",
+      "deadline invalid date /by 2019-12-02 24:00",
+      "deadline invalid date /by 2/12/2019 1260",
+      "deadline invalid date /by 2019-12-02 180",
+      "deadline invalid date /by 2019-12-02 18:0",
+      "deadline invalid date /by 2019-12-02 18:00:00",
+      "deadline invalid date /by 2019-12-02 6pm",
+      "deadline invalid date /by 2019-12-02 evening",
+      "deadline invalid date /by 2019-12-02 1800 extra",
+      "list",
+      "deadline next quest /by 31/12/2026",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] keep me (by: Oct 4 2026)\nNow you have 1 task in the list.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "That date needs a second look! Use yyyy-MM-dd or d/M/yyyy.\nTime is optional: add HH:mm or HHmm, like 2019-12-02 18:00.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] keep me (by: Oct 4 2026)",
+      "On the board! I've added this task:\n  [D][ ] next quest (by: Dec 31 2026)\nNow you have 2 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] keep me (by: Oct 4 2026)\n2.[D][ ] next quest (by: Dec 31 2026)",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "accept-both-date-formats-with-optional-time",
+    "aim": "Accept ISO and day-first dates with or without a 24-hour clock time; preserve time on status updates.",
+    "commands": [
+      "deadline ISO date /by 2019-12-02",
+      "deadline slash date /by 2/12/2019",
+      "deadline ISO time /by 2019-12-02 1800",
+      "deadline slash time /by 2/12/2019 1800",
+      "deadline ISO colon /by 2019-12-02 18:30",
+      "deadline slash colon /by 02/12/2019 18:30",
+      "deadline slash leap day /by 29/2/2000",
+      "list",
+      "mark 4",
+      "unmark 4",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] ISO date (by: Dec 2 2019)\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [D][ ] slash date (by: Dec 2 2019)\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] ISO time (by: Dec 2 2019 18:00)\nNow you have 3 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] slash time (by: Dec 2 2019 18:00)\nNow you have 4 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] ISO colon (by: Dec 2 2019 18:30)\nNow you have 5 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] slash colon (by: Dec 2 2019 18:30)\nNow you have 6 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] slash leap day (by: Feb 29 2000)\nNow you have 7 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] ISO date (by: Dec 2 2019)\n2.[D][ ] slash date (by: Dec 2 2019)\n3.[D][ ] ISO time (by: Dec 2 2019 18:00)\n4.[D][ ] slash time (by: Dec 2 2019 18:00)\n5.[D][ ] ISO colon (by: Dec 2 2019 18:30)\n6.[D][ ] slash colon (by: Dec 2 2019 18:30)\n7.[D][ ] slash leap day (by: Feb 29 2000)",
+      "One down! I've marked this task as done:\n  [D][X] slash time (by: Dec 2 2019 18:00)",
+      "Back on the board! I've marked this task as not done yet:\n  [D][ ] slash time (by: Dec 2 2019 18:00)",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] ISO date (by: Dec 2 2019)\n2.[D][ ] slash date (by: Dec 2 2019)\n3.[D][ ] ISO time (by: Dec 2 2019 18:00)\n4.[D][ ] slash time (by: Dec 2 2019 18:00)\n5.[D][ ] ISO colon (by: Dec 2 2019 18:30)\n6.[D][ ] slash colon (by: Dec 2 2019 18:30)\n7.[D][ ] slash leap day (by: Feb 29 2000)",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "accept-clock-boundaries-and-delete-dated-task",
+    "aim": "Accept valid day boundaries and extra spaces, then delete and renumber a timed deadline.",
+    "commands": [
+      "deadline midnight /by 2026-10-04 0000",
+      "deadline last minute /by 4/10/2026 23:59",
+      "deadline extra spaces /by   2026-10-04   18:00  ",
+      "list",
+      "delete 2",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] midnight (by: Oct 4 2026 00:00)\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [D][ ] last minute (by: Oct 4 2026 23:59)\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] extra spaces (by: Oct 4 2026 18:00)\nNow you have 3 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] midnight (by: Oct 4 2026 00:00)\n2.[D][ ] last minute (by: Oct 4 2026 23:59)\n3.[D][ ] extra spaces (by: Oct 4 2026 18:00)",
+      "Off the board! I've removed this task:\n  [D][ ] last minute (by: Oct 4 2026 23:59)\nNow you have 2 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] midnight (by: Oct 4 2026 00:00)\n2.[D][ ] extra spaces (by: Oct 4 2026 18:00)",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "create-and-manage-legacy-text-deadlines",
+    "aim": "Keep old free-text deadline creation, listing, marking, unmarking, and deletion usable.",
+    "commands": [
+      "deadline old format 1 /by Sunday",
+      "deadline old format 2 /by Mon 2pm",
+      "deadline old format 3 /by 2pm",
+      "deadline old format 4 /by June 6th",
+      "deadline old format 5 /by tomorrow",
+      "deadline old format 6 /by next week",
+      "deadline old format 7 /by after dinner",
+      "deadline old format 8 /by October",
+      "deadline old format 9 /by no idea :-p",
+      "list",
+      "mark 2",
+      "list",
+      "unmark 2",
+      "delete 1",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] old format 1 (by: Sunday)\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [D][ ] old format 2 (by: Mon 2pm)\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] old format 3 (by: 2pm)\nNow you have 3 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] old format 4 (by: June 6th)\nNow you have 4 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] old format 5 (by: tomorrow)\nNow you have 5 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] old format 6 (by: next week)\nNow you have 6 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] old format 7 (by: after dinner)\nNow you have 7 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] old format 8 (by: October)\nNow you have 8 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] old format 9 (by: no idea :-p)\nNow you have 9 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] old format 1 (by: Sunday)\n2.[D][ ] old format 2 (by: Mon 2pm)\n3.[D][ ] old format 3 (by: 2pm)\n4.[D][ ] old format 4 (by: June 6th)\n5.[D][ ] old format 5 (by: tomorrow)\n6.[D][ ] old format 6 (by: next week)\n7.[D][ ] old format 7 (by: after dinner)\n8.[D][ ] old format 8 (by: October)\n9.[D][ ] old format 9 (by: no idea :-p)",
+      "One down! I've marked this task as done:\n  [D][X] old format 2 (by: Mon 2pm)",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] old format 1 (by: Sunday)\n2.[D][X] old format 2 (by: Mon 2pm)\n3.[D][ ] old format 3 (by: 2pm)\n4.[D][ ] old format 4 (by: June 6th)\n5.[D][ ] old format 5 (by: tomorrow)\n6.[D][ ] old format 6 (by: next week)\n7.[D][ ] old format 7 (by: after dinner)\n8.[D][ ] old format 8 (by: October)\n9.[D][ ] old format 9 (by: no idea :-p)",
+      "Back on the board! I've marked this task as not done yet:\n  [D][ ] old format 2 (by: Mon 2pm)",
+      "Off the board! I've removed this task:\n  [D][ ] old format 1 (by: Sunday)\nNow you have 8 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] old format 2 (by: Mon 2pm)\n2.[D][ ] old format 3 (by: 2pm)\n3.[D][ ] old format 4 (by: June 6th)\n4.[D][ ] old format 5 (by: tomorrow)\n5.[D][ ] old format 6 (by: next week)\n6.[D][ ] old format 7 (by: after dinner)\n7.[D][ ] old format 8 (by: October)\n8.[D][ ] old format 9 (by: no idea :-p)",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
   }
 ]
 ```
@@ -361,7 +562,7 @@ created automatically.
 First run commands:
 
 1. `todo borrow book`
-2. `deadline return book /by Sunday`
+2. `deadline return book /by 2026-10-04`
 3. `event project meeting /from Mon 2pm /to 4pm`
 4. `mark 2`
 5. `delete 1`
@@ -378,14 +579,14 @@ Expected list after restarting:
 
 ```text
 Quest board, coming right up! Here are your tasks:
-1.[D][X] return book (by: Sunday)
+1.[D][X] return book (by: Oct 4 2026)
 2.[E][ ] project meeting (from: Mon 2pm to: 4pm)
 ```
 
 Expected `data/noah.txt` after the second run:
 
 ```text
-D | 0 | return book | Sunday
+D | 0 | return book | 2026-10-04
 ```
 
 Run both launches from one temporary working directory. This case is separate
@@ -451,8 +652,8 @@ Expected output for `todo read book`:
 On the board! I've added this task:
   [T][ ] read book
 Now you have 1 task in the list.
-Saving hit a bump! I couldn't save your tasks to <data-file-path>.
-Your latest changes are not saved. Please check the file path and permissions.
+Your saved tasks need a little rescue first!
+Your latest changes are only in memory. Fix the loading error and restart Noah before saving.
 ```
 
 Expected output for `list`:
@@ -465,3 +666,47 @@ Quest board, coming right up! Here are your tasks:
 Expected output for `bye` is the farewell block above. The task exists in
 memory, but the save failure must be explicit and the directory must remain
 a directory.
+
+## Deadline storage and locale checks
+
+### Preserve dates from older saved files
+
+Older versions accepted arbitrary date strings. Load a file containing
+`Sunday`, `June 6th`, and an old impossible value such as `2026-02-29` as
+deadline fields. List them unchanged, add a valid dated task, mark an old task,
+and restart. Preserve the legacy text and completion state throughout.
+New `/by` input must also accept free-text labels. Numeric dates and their
+attached times are validated, while labels are retained without guessing a date.
+
+### Round-trip both numeric date formats and optional times
+
+Add ISO and slash dates, with and without times. Verify that stored values
+use ISO dates and optional `HH:mm`, then restart and check the display and
+completion state. Also load an old numeric field `2/12/2019 1800` directly;
+it must display `Dec 2 2019 18:00` and be saved as `2019-12-02 18:00`.
+An undated deadline must still load and save without a fourth field.
+
+### Preserve a malformed saved file and recover after repair
+
+Create `data/noah.txt` containing `not a task`. Attempt to add a task after
+the startup error. Show the save-blocked message from the directory-path
+case above and leave the original bytes unchanged. Replace the malformed
+record with `D | 1 | return book | 2026-10-04`, restart, and unmark the task.
+Loading and saving must now work, with the deadline stored using status `0`.
+
+### Use English month names regardless of the system locale
+
+Start Noah in a fresh working directory with Java options
+`-Duser.language=zh -Duser.country=CN`. Add a deadline for `2019-10-15 18:00`,
+list it, and exit. The display must be `Oct 15 2019 18:00`; the saved value
+must be `2019-10-15 18:00`.
+
+
+### Round-trip newly entered text deadlines
+
+In an empty working directory, create deadlines with `Sunday`, `June 6th`,
+`Mon 2pm`, `2pm`, and a custom text label. Also create an event with
+`/from Mon 2pm /to 4pm`, a todo, and both numeric deadline formats. Mark a
+text deadline, restart, list everything, unmark it, delete a different text
+deadline, and restart again. The text, task order, and completion states
+must survive every save and reload.
