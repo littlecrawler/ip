@@ -63,7 +63,8 @@ Use lowercase command words and spaces as shown. Enter `list`, `clear`, and
 
 ### Adding tasks
 
-Every task needs a description. A todo needs nothing else:
+Every task needs a description containing more than just whitespace.
+A todo needs nothing else:
 
 ```text
 todo prepare presentation
@@ -77,7 +78,8 @@ event team meeting
 ```
 
 If you use `/by`, supply a due value. For an event with timing details, supply
-both `/from` and `/to`, in that order.
+both `/from` and `/to`, in that order. Write these markers as separate words.
+Text such as `/byte` or a URL stays part of the description.
 
 ### Deadline dates and times
 
@@ -190,8 +192,9 @@ Missing folders and files are created automatically. Launch from the same
 folder next time to load the same tasks. Keep a copy of this file if you want
 a backup, and move the `data` folder with your JAR when changing locations.
 
-Avoid ` | ` (a vertical bar with a space on each side) in descriptions and
-text time labels: that sequence is reserved for the saved task format.
+The `|` character is reserved for saving tasks. Noah rejects it in new task
+descriptions and time labels; replace it with a word or another punctuation
+mark. Descriptions and supplied time labels cannot contain only whitespace.
 
 ## Troubleshooting
 

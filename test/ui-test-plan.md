@@ -159,6 +159,17 @@ tasks. It cancels any pending duplicate, saves an empty list, and starts the
 numbering at 1 for subsequent additions. Repeating clear on an empty list is
 a no-op. Arguments and command prefixes must not trigger deletion.
 
+### Reject unsafe stored fields and match complete time delimiters
+
+Aim: Reject vertical bars in new task descriptions and time labels before
+changing the list or saved file. Reject fields containing only whitespace,
+including full-width spaces, using the existing missing-detail messages.
+Keep `/byte`, `/fromage`, `/today`, and URLs intact; only standalone `/by`,
+`/from`, and `/to` tokens introduce timing fields. Preserve undated tasks,
+free-text times, and errors for incomplete or reversed delimiters.
+
+The first 29 machine-readable cases remain unchanged from the released v0.2.
+
 <!-- TEST-CASES-START -->
 ```json
 [
@@ -997,6 +1008,112 @@ a no-op. Arguments and command prefixes must not trigger deletion.
       "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
       "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
     ]
+  },
+  {
+    "name": "reject-pipes-before-adding-tasks",
+    "aim": "Reject reserved vertical bars in every stored field and preserve existing tasks, including bars without surrounding spaces and at field boundaries.",
+    "commands": [
+      "todo keep existing",
+      "todo compare A | B",
+      "deadline compare A | B",
+      "event compare A | B",
+      "deadline return book /by Sun|day",
+      "event meeting /from 2pm | 3pm /to 4pm",
+      "event meeting /from 2pm /to 4|pm",
+      "deadline notes | /by Sunday",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] keep existing\nNow you have 1 task in the list.",
+      "That symbol is reserved for saving quests!\nPlease replace | in task descriptions and time labels.",
+      "That symbol is reserved for saving quests!\nPlease replace | in task descriptions and time labels.",
+      "That symbol is reserved for saving quests!\nPlease replace | in task descriptions and time labels.",
+      "That symbol is reserved for saving quests!\nPlease replace | in task descriptions and time labels.",
+      "That symbol is reserved for saving quests!\nPlease replace | in task descriptions and time labels.",
+      "That symbol is reserved for saving quests!\nPlease replace | in task descriptions and time labels.",
+      "That symbol is reserved for saving quests!\nPlease replace | in task descriptions and time labels.",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] keep existing",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "reject-unicode-blank-task-fields",
+    "aim": "Treat full-width spaces as blank in descriptions and timing fields before they can be saved, and retain the valid task.",
+    "commands": [
+      "todo keep existing",
+      "todo \u3000",
+      "deadline \u3000",
+      "event \u3000",
+      "deadline \u3000 /by Sunday",
+      "deadline read book /by \u3000",
+      "event \u3000 /from 2pm /to 4pm",
+      "event meeting /from \u3000 /to 4pm",
+      "event meeting /from 2pm /to \u3000",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] keep existing\nNow you have 1 task in the list.",
+      "Every quest needs a name! Add a description. Try: todo read book",
+      "What's the mission? Add a description. Try: deadline return book /by Sunday",
+      "What's the occasion? Add a description. Try: event meeting /from 2pm /to 4pm",
+      "This deadline is missing a piece! Add a description and date.\nTry: deadline return book /by Sunday",
+      "This deadline is missing a piece! Add a description and date.\nTry: deadline return book /by Sunday",
+      "Let's fill in the blanks! An event needs a description, start, and end.\nTry: event meeting /from 2pm /to 4pm",
+      "Let's fill in the blanks! An event needs a description, start, and end.\nTry: event meeting /from 2pm /to 4pm",
+      "Let's fill in the blanks! An event needs a description, start, and end.\nTry: event meeting /from 2pm /to 4pm",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] keep existing",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "match-only-complete-time-delimiters",
+    "aim": "Preserve delimiter prefixes and URLs in descriptions, and still accept tasks without timing delimiters.",
+    "commands": [
+      "deadline read /byte notes /by Sunday",
+      "deadline read https://example.com/by /by 2026-10-04 1800",
+      "event visit https://example.com/today /from 2pm /to 4pm",
+      "event compare /fromage /today /from Mon 2pm /to 4pm",
+      "deadline read /byte notes",
+      "event compare /fromage /today",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] read /byte notes (by: Sunday)\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [D][ ] read https://example.com/by (by: Oct 4 2026 18:00)\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] visit https://example.com/today (from: 2pm to: 4pm)\nNow you have 3 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] compare /fromage /today (from: Mon 2pm to: 4pm)\nNow you have 4 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] read /byte notes\nNow you have 5 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] compare /fromage /today\nNow you have 6 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] read /byte notes (by: Sunday)\n2.[D][ ] read https://example.com/by (by: Oct 4 2026 18:00)\n3.[E][ ] visit https://example.com/today (from: 2pm to: 4pm)\n4.[E][ ] compare /fromage /today (from: Mon 2pm to: 4pm)\n5.[D][ ] read /byte notes\n6.[E][ ] compare /fromage /today",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "respect-whitespace-and-missing-time-delimiters",
+    "aim": "Recognize whitespace-separated delimiter tokens after misleading prefixes, while continuing to reject incomplete and reversed timing syntax.",
+    "commands": [
+      "deadline read /byte notes\t/by\tSunday",
+      "event visit https://example.com/today\t/from\t2pm\t/to\t4pm",
+      "deadline read /byte notes /by",
+      "event meet /today /to 4pm /from 2pm",
+      "event meet /fromage /to 4pm",
+      "deadline keep/by text /by Sunday",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] read /byte notes (by: Sunday)\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [E][ ] visit https://example.com/today (from: 2pm to: 4pm)\nNow you have 2 tasks in the list.",
+      "This deadline is missing a piece! Add a description and date.\nTry: deadline return book /by Sunday",
+      "Let's fill in the blanks! An event needs a description, start, and end.\nTry: event meeting /from 2pm /to 4pm",
+      "Let's fill in the blanks! An event needs a description, start, and end.\nTry: event meeting /from 2pm /to 4pm",
+      "On the board! I've added this task:\n  [D][ ] keep/by text (by: Sunday)\nNow you have 3 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] read /byte notes (by: Sunday)\n2.[E][ ] visit https://example.com/today (from: 2pm to: 4pm)\n3.[D][ ] keep/by text (by: Sunday)",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
   }
 ]
 ```
@@ -1044,6 +1161,21 @@ D | 0 | return book | 2026-10-04
 Run both launches from one temporary working directory. This case is separate
 from the machine-readable block because it requires two Noah processes to
 share the same data file.
+
+## Input validation persistence regressions
+
+Start with a saved `todo keep existing` task. Attempt the pipe and full-width
+blank inputs from the new cases, then run `list` and `bye`. Verify that both
+the saved bytes and modification time are unchanged, and that restarting
+still lists the original task without a loading error.
+
+Create the tasks from `match-only-complete-time-delimiters`, exit, and restart.
+Verify that every description and time label is restored exactly, including
+URLs and `/byte` text. Check that the saved numeric date remains ISO formatted.
+
+Load an older valid task containing `A|B` without separator spaces, add a safe
+task, and restart. The input restriction must not discard existing valid data.
+The existing corrupted-file protection checks must continue to pass.
 
 ## Ad hoc stress case
 

@@ -114,11 +114,15 @@ public final class Parser {
      *
      * @param userCommand Full command entered by the user.
      * @return New task that has not yet been added to the task list.
-     * @throws NoahException If the command or required task details are invalid.
+     * @throws NoahException If the command or task details are invalid or contain a reserved vertical bar.
      */
     public static Task parseTask(String userCommand) throws NoahException {
         String command = parseCommandWord(userCommand);
         String description = userCommand.substring(command.length()).trim();
+        if (description.contains("|")) {
+            throw new NoahException("That symbol is reserved for saving quests!\n"
+                    + "Please replace | in task descriptions and time labels.");
+        }
         return switch (command) {
         case "todo" -> parseTodo(description);
         case "deadline" -> parseDeadline(description);
@@ -132,10 +136,10 @@ public final class Parser {
      *
      * @param description Task description entered by the user.
      * @return New todo task.
-     * @throws NoahException If the description is empty.
+     * @throws NoahException If the description is blank.
      */
     private static Todo parseTodo(String description) throws NoahException {
-        if (description.isEmpty()) {
+        if (description.isBlank()) {
             throw new NoahException("Every quest needs a name! Add a description. Try: todo read book");
         }
         return new Todo(description);
@@ -149,23 +153,19 @@ public final class Parser {
      * @throws NoahException If required details are missing or an explicit numeric date/time is invalid.
      */
     private static Deadline parseDeadline(String description) throws NoahException {
-        if (description.isEmpty()) {
+        if (description.isBlank()) {
             throw new NoahException(
                     "What's the mission? Add a description. Try: deadline return book /by Sunday");
         }
 
-        boolean hasBy = description.equals("/by")
-                || description.startsWith("/by ")
-                || description.endsWith(" /by")
-                || description.contains(" /by ");
-        if (!hasBy) {
+        int byIndex = findDelimiter(description, "/by");
+        if (byIndex == -1) {
             return new Deadline(description);
         }
 
-        int byIndex = description.indexOf("/by");
         String taskDescription = description.substring(0, byIndex).trim();
         String by = description.substring(byIndex + "/by".length()).trim();
-        if (taskDescription.isEmpty() || by.isEmpty()) {
+        if (taskDescription.isBlank() || by.isBlank()) {
             throw new NoahException(
                     "This deadline is missing a piece! Add a description and date.\n"
                             + "Try: deadline return book /by Sunday");
@@ -181,31 +181,17 @@ public final class Parser {
      * @throws NoahException If required event details are missing.
      */
     private static Event parseEvent(String description) throws NoahException {
-        if (description.isEmpty()) {
+        if (description.isBlank()) {
             throw new NoahException(
                     "What's the occasion? Add a description. Try: event meeting /from 2pm /to 4pm");
         }
 
-        boolean hasFrom = description.equals("/from")
-                || description.startsWith("/from ")
-                || description.endsWith(" /from")
-                || description.contains(" /from ");
-        boolean hasTo = description.equals("/to")
-                || description.startsWith("/to ")
-                || description.endsWith(" /to")
-                || description.contains(" /to ");
-        if (!hasFrom && !hasTo) {
+        int fromIndex = findDelimiter(description, "/from");
+        int toIndex = findDelimiter(description, "/to");
+        if (fromIndex == -1 && toIndex == -1) {
             return new Event(description);
         }
-        if (!hasFrom || !hasTo) {
-            throw new NoahException(
-                    "Let's fill in the blanks! An event needs a description, start, and end.\n"
-                            + "Try: event meeting /from 2pm /to 4pm");
-        }
-
-        int fromIndex = description.indexOf("/from");
-        int toIndex = description.indexOf("/to");
-        if (fromIndex >= toIndex) {
+        if (fromIndex == -1 || toIndex == -1 || fromIndex >= toIndex) {
             throw new NoahException(
                     "Let's fill in the blanks! An event needs a description, start, and end.\n"
                             + "Try: event meeting /from 2pm /to 4pm");
@@ -214,11 +200,33 @@ public final class Parser {
         String taskDescription = description.substring(0, fromIndex).trim();
         String from = description.substring(fromIndex + "/from".length(), toIndex).trim();
         String to = description.substring(toIndex + "/to".length()).trim();
-        if (taskDescription.isEmpty() || from.isEmpty() || to.isEmpty()) {
+        if (taskDescription.isBlank() || from.isBlank() || to.isBlank()) {
             throw new NoahException(
                     "Let's fill in the blanks! An event needs a description, start, and end.\n"
                             + "Try: event meeting /from 2pm /to 4pm");
         }
         return new Event(taskDescription, from, to);
+    }
+
+    /**
+     * Finds a complete delimiter token instead of matching text inside a word or URL.
+     * A delimiter must be bounded by whitespace or the beginning/end of the input.
+     *
+     * @param text Task details following the command word.
+     * @param delimiter Timing marker to find, such as /by.
+     * @return Index of the first complete delimiter, or -1 if none is present.
+     */
+    private static int findDelimiter(String text, String delimiter) {
+        int index = text.indexOf(delimiter);
+        while (index != -1) {
+            int endIndex = index + delimiter.length();
+            boolean hasStartBoundary = index == 0 || Character.isWhitespace(text.charAt(index - 1));
+            boolean hasEndBoundary = endIndex == text.length() || Character.isWhitespace(text.charAt(endIndex));
+            if (hasStartBoundary && hasEndBoundary) {
+                return index;
+            }
+            index = text.indexOf(delimiter, endIndex);
+        }
+        return -1;
     }
 }
