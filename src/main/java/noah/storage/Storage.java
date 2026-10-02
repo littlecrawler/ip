@@ -53,7 +53,8 @@ public class Storage {
             }
             return tasks;
         } catch (IOException e) {
-            throw new NoahException("I couldn't load your saved tasks from " + filePath + ".");
+            throw new NoahException("Oops, I couldn't load your saved tasks from " + filePath + ".\n"
+                    + "Please check the file path and permissions, then restart Noah.");
         }
     }
 
@@ -73,7 +74,8 @@ public class Storage {
             ensureDataFileExists();
             Files.write(filePath, lines, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new NoahException("I couldn't save your tasks to " + filePath + ".");
+            throw new NoahException("Saving hit a bump! I couldn't save your tasks to " + filePath + ".\n"
+                    + "Your latest changes are not saved. Please check the file path and permissions.");
         }
     }
 
@@ -179,7 +181,8 @@ public class Storage {
      * @return Exception describing the invalid line.
      */
     private NoahException invalidDataException(int lineNumber) {
-        return new NoahException("I couldn't load your saved tasks because line "
-                + lineNumber + " in " + filePath + " is invalid.");
+        return new NoahException("Oops, I couldn't load your saved tasks: line "
+                + lineNumber + " in " + filePath + " is invalid.\n"
+                + "Please fix that line and restart Noah.");
     }
 }

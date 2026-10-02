@@ -1,0 +1,168 @@
+package noah.ui;
+
+import java.util.List;
+import java.util.Scanner;
+
+import noah.task.Task;
+
+/**
+ * Reads console commands and displays messages to the user.
+ */
+public class Ui {
+    private static final String SEPARATOR =
+            "\n===============================================================================\n";
+
+    // ASCII-art banner generated using http://www.network-science.de/ascii/
+    private static final String BANNER = """
+            NNNNNNNN        NNNNNNNN                                  hhhhhhh
+            N:::::::N       N::::::N                                  h:::::h
+            N::::::::N      N::::::N                                  h:::::h
+            N:::::::::N     N::::::N                                  h:::::h
+            N::::::::::N    N::::::N   ooooooooooo     aaaaaaaaaaaaa   h::::h hhhhh
+            N:::::::::::N   N::::::N oo:::::::::::oo   a::::::::::::a  h::::hh:::::hhh
+            N:::::::N::::N  N::::::No:::::::::::::::o  aaaaaaaaa:::::a h::::::::::::::hh
+            N::::::N N::::N N::::::No:::::ooooo:::::o           a::::a h:::::::hhh::::::h
+            N::::::N  N::::N:::::::No::::o     o::::o    aaaaaaa:::::a h::::::h   h::::::h
+            N::::::N   N:::::::::::No::::o     o::::o  aa::::::::::::a h:::::h     h:::::h
+            N::::::N    N::::::::::No::::o     o::::o a::::aaaa::::::a h:::::h     h:::::h
+            N::::::N     N:::::::::No::::o     o::::oa::::a    a:::::a h:::::h     h:::::h
+            N::::::N      N::::::::No:::::ooooo:::::oa::::a    a:::::a h:::::h     h:::::h
+            N::::::N       N:::::::No:::::::::::::::oa:::::aaaa::::::a h:::::h     h:::::h
+            N::::::N        N::::::N oo:::::::::::oo  a::::::::::aa:::ah:::::h     h:::::h
+            NNNNNNNN         NNNNNNN   ooooooooooo     aaaaaaaaaa  aaaahhhhhhh     hhhhhhh
+            """;
+
+    private final Scanner scanner;
+
+    /**
+     * Creates a user interface that reads from standard input.
+     */
+    public Ui() {
+        scanner = new Scanner(System.in);
+    }
+
+    /**
+     * Displays the banner and welcome message.
+     */
+    public void showWelcome() {
+        showLine();
+        System.out.print(BANNER);
+        showLine();
+        // Greeting wording refined with OpenAI Codex.
+        System.out.println("Ad astra abyssosque!");
+        System.out.println("Hey, Traveler! I'm Noah, your trusted companion.");
+        System.out.println("Ready for an adventure?");
+        showLine();
+    }
+
+    /**
+     * Reads the next line of user input without interpreting it.
+     *
+     * @return Command exactly as entered by the user.
+     */
+    public String readCommand() {
+        return scanner.nextLine();
+    }
+
+    /**
+     * Displays a separator between console messages.
+     */
+    public void showLine() {
+        System.out.println(SEPARATOR);
+    }
+
+    /**
+     * Displays the farewell message.
+     */
+    public void showGoodbye() {
+        System.out.println("Farewell, Traveler!");
+        System.out.println("Time to recharge. See you on the next quest!");
+    }
+
+    /**
+     * Displays all tasks in order, or explains how to add the first task.
+     *
+     * @param tasks Tasks to display.
+     */
+    public void showTaskList(List<Task> tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("Your task list is empty. No quests on the board!");
+            System.out.println("Ready for one? Try: todo read book");
+            return;
+        }
+        System.out.println("Quest board, coming right up! Here are your tasks:");
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println((i + 1) + "." + tasks.get(i));
+        }
+    }
+
+    /**
+     * Displays the added task and the updated task count.
+     *
+     * @param task Task that was added.
+     * @param count Number of tasks after the addition.
+     */
+    public void showTaskAdded(Task task, int count) {
+        System.out.println("On the board! I've added this task:");
+        System.out.println("  " + task);
+        showTaskCount(count);
+    }
+
+    /**
+     * Displays the deleted task and the updated task count.
+     *
+     * @param task Task that was deleted.
+     * @param count Number of tasks after the deletion.
+     */
+    public void showTaskDeleted(Task task, int count) {
+        System.out.println("Off the board! I've removed this task:");
+        System.out.println("  " + task);
+        showTaskCount(count);
+    }
+
+    /**
+     * Displays confirmation that a task was marked as done.
+     *
+     * @param task Task that was marked as done.
+     */
+    public void showTaskMarked(Task task) {
+        System.out.println("One down! I've marked this task as done:");
+        System.out.println("  " + task);
+    }
+
+    /**
+     * Displays confirmation that a task was marked as not done.
+     *
+     * @param task Task that was marked as not done.
+     */
+    public void showTaskUnmarked(Task task) {
+        System.out.println("Back on the board! I've marked this task as not done yet:");
+        System.out.println("  " + task);
+    }
+
+    /**
+     * Displays an error from command processing or storage.
+     *
+     * @param message Explanation of the error.
+     */
+    public void showError(String message) {
+        System.out.println(message);
+    }
+
+    /**
+     * Closes the input scanner and its underlying standard input stream.
+     */
+    public void close() {
+        scanner.close();
+    }
+
+    /**
+     * Displays the task count with the appropriate singular or plural noun.
+     *
+     * @param count Number of tasks currently stored.
+     */
+    private void showTaskCount(int count) {
+        String taskLabel = count == 1 ? "task" : "tasks";
+        System.out.println("Now you have " + count + " " + taskLabel + " in the list.");
+    }
+}
