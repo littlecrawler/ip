@@ -12,6 +12,7 @@ import noah.exception.NoahException;
 import noah.task.Deadline;
 import noah.task.Event;
 import noah.task.Task;
+import noah.task.TaskDateTime;
 import noah.task.Todo;
 
 /**
@@ -21,6 +22,11 @@ public class Storage {
     private static final String FIELD_SEPARATOR = " | ";
 
     private final Path filePath;
+
+    /**
+     * Prevents saves from overwriting tasks that could not be loaded.
+     */
+    private boolean hasLoadingError;
 
     /**
      * Creates storage that uses the specified data file.
@@ -34,6 +40,7 @@ public class Storage {
     /**
      * Loads saved tasks into a dynamic list.
      * Creates the data directory and file if either does not exist.
+     * A loading failure blocks saves until the data can be loaded successfully.
      *
      * @return Tasks loaded from the data file.
      * @throws NoahException If the data file cannot be read or contains invalid data.
@@ -51,10 +58,15 @@ public class Storage {
                 }
                 tasks.add(parseTask(line, i + 1));
             }
+            hasLoadingError = false;
             return tasks;
         } catch (IOException e) {
+            hasLoadingError = true;
             throw new NoahException("Oops, I couldn't load your saved tasks from " + filePath + ".\n"
                     + "Please check the file path and permissions, then restart Noah.");
+        } catch (NoahException e) {
+            hasLoadingError = true;
+            throw e;
         }
     }
 
@@ -62,9 +74,13 @@ public class Storage {
      * Replaces the data file contents with the current task list.
      *
      * @param tasks Tasks to save.
-     * @throws NoahException If the tasks cannot be written to the data file.
+     * @throws NoahException If loading failed or the tasks cannot be written to the data file.
      */
     public void saveTasks(List<Task> tasks) throws NoahException {
+        if (hasLoadingError) {
+            throw new NoahException("Your saved tasks need a little rescue first!\n"
+                    + "Your latest changes are only in memory. Fix the loading error and restart Noah before saving.");
+        }
         List<String> lines = new ArrayList<>();
         for (Task task : tasks) {
             lines.add(task.toDataString());
@@ -144,14 +160,14 @@ public class Storage {
      * @param fields Fields from one data-file line.
      * @param lineNumber One-based line number used in error messages.
      * @return Parsed deadline task.
-     * @throws NoahException If the field count or due date is invalid.
+     * @throws NoahException If the field count is invalid or the due date is blank.
      */
     private Task parseDeadline(String[] fields, int lineNumber) throws NoahException {
         if (fields.length == 3) {
             return new Deadline(fields[2]);
         }
         if (fields.length == 4 && !fields[3].isBlank()) {
-            return new Deadline(fields[2], fields[3]);
+            return new Deadline(fields[2], TaskDateTime.fromStorage(fields[3]));
         }
         throw invalidDataException(lineNumber);
     }
@@ -162,7 +178,7 @@ public class Storage {
      * @param fields Fields from one data-file line.
      * @param lineNumber One-based line number used in error messages.
      * @return Parsed event task.
-     * @throws NoahException If the field count or event period is invalid.
+     * @throws NoahException If the field count or event fields are invalid.
      */
     private Task parseEvent(String[] fields, int lineNumber) throws NoahException {
         if (fields.length == 3) {

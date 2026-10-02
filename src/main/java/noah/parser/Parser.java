@@ -4,6 +4,7 @@ import noah.exception.NoahException;
 import noah.task.Deadline;
 import noah.task.Event;
 import noah.task.Task;
+import noah.task.TaskDateTime;
 import noah.task.Todo;
 
 /**
@@ -112,11 +113,11 @@ public final class Parser {
     }
 
     /**
-     * Creates a deadline task from its description and optional due date.
+     * Creates a deadline task with an optional numeric date/time or free-text date label.
      *
      * @param description Text following the deadline command word.
      * @return New deadline task.
-     * @throws NoahException If required deadline details are missing.
+     * @throws NoahException If required details are missing or an explicit numeric date/time is invalid.
      */
     private static Deadline parseDeadline(String description) throws NoahException {
         if (description.isEmpty()) {
@@ -140,7 +141,7 @@ public final class Parser {
                     "This deadline is missing a piece! Add a description and date.\n"
                             + "Try: deadline return book /by Sunday");
         }
-        return new Deadline(taskDescription, by);
+        return new Deadline(taskDescription, TaskDateTime.parse(by));
     }
 
     /**

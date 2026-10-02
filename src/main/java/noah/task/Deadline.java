@@ -1,19 +1,19 @@
 package noah.task;
 
 /**
- * Represents a task that can be marked as done or not done.
+ * Represents a task with an optional due date, time, or free-text label.
  */
 public class Deadline extends Task {
-    protected String by;
+    private final TaskDateTime by;
 
     /**
-     * Creates a task with the given description.
+     * Creates a task with the given description and no due date.
      * New tasks are not done by default.
      *
      * @param description Description of the task.
      */
     public Deadline(String description) {
-        super(description);
+        this(description, null);
     }
 
     /**
@@ -21,26 +21,26 @@ public class Deadline extends Task {
      * New tasks are not done by default.
      *
      * @param description Description of the task.
-     * @param by The due date of the task.
+     * @param by The due date of the task, or null if no date was supplied.
      */
-    public Deadline(String description, String by) {
-        this(description);
+    public Deadline(String description, TaskDateTime by) {
+        super(description);
         this.by = by;
     }
 
     /**
-     * Returns this deadline in the format used by the data file.
+     * Returns this deadline with an ISO date/time or preserved date text.
      *
      * @return Serialized deadline data.
      */
     @Override
     public String toDataString() {
         String data = "D | " + (isDone ? "1" : "0") + " | " + description;
-        return by == null ? data : data + " | " + by;
+        return by == null ? data : data + " | " + by.toDataString();
     }
 
     /**
-     * Returns the task in the format used when displaying the task list.
+     * Returns the task with a formatted due date/time or preserved date text.
      *
      * @return Task status followed by its description.
      */
