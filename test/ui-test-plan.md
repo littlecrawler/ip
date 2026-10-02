@@ -140,6 +140,25 @@ The first 16 machine-readable cases remain unchanged from Level-8.
 Keep this JSON block synchronized with the descriptions above. The
 `test-ui` runner treats it as the executable source of truth.
 
+### Confirm duplicate additions
+
+Aim: Match exact task types, descriptions, and timing details while ignoring
+completion state. Equivalent numeric deadline formats match. Text labels and
+description case/internal spacing remain significant. A date without a time
+differs from midnight. Include undated deadlines and events.
+
+Only yes/y adds the pending copy; no/n cancels. Replies ignore case and
+surrounding spaces. Invalid commands leave the decision pending. A recognized
+nonconfirmation command cancels the addition and is then executed normally.
+An affirmative reply can add a pending task only once.
+
+### Clear the task list
+
+Aim: The exact command `clear` immediately removes all tasks, including done
+tasks. It cancels any pending duplicate, saves an empty list, and starts the
+numbering at 1 for subsequent additions. Repeating clear on an empty list is
+a no-op. Arguments and command prefixes must not trigger deletion.
+
 <!-- TEST-CASES-START -->
 ```json
 [
@@ -246,7 +265,7 @@ Keep this JSON block synchronized with the descriptions above. The
       "No task numbered 1 on the board! Type list to check your task numbers.",
       "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
       "No task numbered 2 on the board! Type list to check your task numbers.",
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
       "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
       "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
     ]
@@ -281,8 +300,8 @@ Keep this JSON block synchronized with the descriptions above. The
     "expectedOutputs": [
       "Every quest needs a name! Add a description. Try: todo read book",
       "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
       "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
       "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
     ]
@@ -363,10 +382,10 @@ Keep this JSON block synchronized with the descriptions above. The
       "bye"
     ],
     "expectedOutputs": [
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
       "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
       "Oops, task numbers start at 1! Use a whole number from list.",
       "Oops, task numbers start at 1! Use a whole number from list.",
@@ -648,8 +667,8 @@ Keep this JSON block synchronized with the descriptions above. The
       "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
       "What are we looking for, Traveler? Add a keyword. Try: find book",
       "What are we looking for, Traveler? Add a keyword. Try: find book",
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
-      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
       "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n1.[T][ ] read book",
       "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
       "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
@@ -718,6 +737,266 @@ Keep this JSON block synchronized with the descriptions above. The
       "Quest board, coming right up! Here are your tasks:\n1.[T][ ] buy milk\n2.[T][ ] buy bread\n3.[D][ ] return book (by: Sunday)",
       "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
     ]
+  },
+  {
+    "name": "duplicate-addition-requires-explicit-confirmation",
+    "aim": "Cancel or accept repeated tasks, include completed matches, and consume confirmation only once.",
+    "commands": [
+      "todo read book",
+      "todo read book",
+      "no",
+      "list",
+      "todo read book",
+      "YES",
+      "yes",
+      "mark 1",
+      "todo read book",
+      "n",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][ ] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][ ] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 2 tasks in the list.",
+      "No duplicate task is waiting for a yes or no. What's our next quest?",
+      "One down! I've marked this task as done:\n  [T][X] read book",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][X] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][X] read book\n2.[T][ ] read book",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "duplicate-deadlines-compare-calendar-values",
+    "aim": "Recognize equivalent numeric formats while distinguishing dates, optional times, and midnight.",
+    "commands": [
+      "deadline return book /by 2/12/2019 1800",
+      "deadline return book /by 2019-12-02 18:00",
+      "y",
+      "deadline return book /by 2019-12-02",
+      "deadline return book /by 02/12/2019",
+      "no",
+      "deadline return book /by 2019-12-02 0000",
+      "deadline return book /by 2019-12-03 1800",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] return book (by: Dec 2 2019 18:00)\nNow you have 1 task in the list.",
+      "Deja vu! A task with the same details is already on the board:\n1.[D][ ] return book (by: Dec 2 2019 18:00)\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "On the board! I've added this task:\n  [D][ ] return book (by: Dec 2 2019 18:00)\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] return book (by: Dec 2 2019)\nNow you have 3 tasks in the list.",
+      "Deja vu! A task with the same details is already on the board:\n3.[D][ ] return book (by: Dec 2 2019)\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!",
+      "On the board! I've added this task:\n  [D][ ] return book (by: Dec 2 2019 00:00)\nNow you have 4 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] return book (by: Dec 3 2019 18:00)\nNow you have 5 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] return book (by: Dec 2 2019 18:00)\n2.[D][ ] return book (by: Dec 2 2019 18:00)\n3.[D][ ] return book (by: Dec 2 2019)\n4.[D][ ] return book (by: Dec 2 2019 00:00)\n5.[D][ ] return book (by: Dec 3 2019 18:00)",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "duplicate-legacy-deadlines-and-events",
+    "aim": "Compare text labels exactly and preserve both event endpoints and the optional undated form.",
+    "commands": [
+      "deadline book /by Sunday",
+      "deadline book /by Sunday",
+      "n",
+      "deadline book /by sunday",
+      "event meeting /from Mon 2pm /to 4pm",
+      "event meeting /from Mon 2pm /to 4pm",
+      " Y ",
+      "event meeting /from Tue 2pm /to 4pm",
+      "event meeting /from Mon 2pm /to 5pm",
+      "event meeting",
+      "event meeting",
+      "no",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [D][ ] book (by: Sunday)\nNow you have 1 task in the list.",
+      "Deja vu! A task with the same details is already on the board:\n1.[D][ ] book (by: Sunday)\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!",
+      "On the board! I've added this task:\n  [D][ ] book (by: sunday)\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] meeting (from: Mon 2pm to: 4pm)\nNow you have 3 tasks in the list.",
+      "Deja vu! A task with the same details is already on the board:\n3.[E][ ] meeting (from: Mon 2pm to: 4pm)\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "On the board! I've added this task:\n  [E][ ] meeting (from: Mon 2pm to: 4pm)\nNow you have 4 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] meeting (from: Tue 2pm to: 4pm)\nNow you have 5 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] meeting (from: Mon 2pm to: 5pm)\nNow you have 6 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] meeting\nNow you have 7 tasks in the list.",
+      "Deja vu! A task with the same details is already on the board:\n7.[E][ ] meeting\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!",
+      "Quest board, coming right up! Here are your tasks:\n1.[D][ ] book (by: Sunday)\n2.[D][ ] book (by: sunday)\n3.[E][ ] meeting (from: Mon 2pm to: 4pm)\n4.[E][ ] meeting (from: Mon 2pm to: 4pm)\n5.[E][ ] meeting (from: Tue 2pm to: 4pm)\n6.[E][ ] meeting (from: Mon 2pm to: 5pm)\n7.[E][ ] meeting",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "duplicate-matching-respects-types-and-exact-descriptions",
+    "aim": "Keep different task types, description case, and internal spacing distinct; compare undated tasks.",
+    "commands": [
+      "todo mission",
+      "deadline mission",
+      "event mission",
+      "todo Mission",
+      "todo   mission   ",
+      "no",
+      "deadline mission",
+      "n",
+      "event mission",
+      " N ",
+      "todo mission  two",
+      "todo mission two",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] mission\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [D][ ] mission\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] mission\nNow you have 3 tasks in the list.",
+      "On the board! I've added this task:\n  [T][ ] Mission\nNow you have 4 tasks in the list.",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][ ] mission\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!",
+      "Deja vu! A task with the same details is already on the board:\n2.[D][ ] mission\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!",
+      "Deja vu! A task with the same details is already on the board:\n3.[E][ ] mission\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!",
+      "On the board! I've added this task:\n  [T][ ] mission  two\nNow you have 5 tasks in the list.",
+      "On the board! I've added this task:\n  [T][ ] mission two\nNow you have 6 tasks in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] mission\n2.[D][ ] mission\n3.[E][ ] mission\n4.[T][ ] Mission\n5.[T][ ] mission  two\n6.[T][ ] mission two",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "pending-duplicate-does-not-swallow-other-commands",
+    "aim": "Keep invalid replies pending; cancel before executing a recognized command, including bye.",
+    "commands": [
+      "todo read book",
+      "todo read book",
+      "maybe",
+      "yes extra",
+      "",
+      "list",
+      "yes",
+      "todo read book",
+      "todo buy milk",
+      "todo read book",
+      "find milk",
+      "todo read book",
+      "delete 1",
+      "todo read book",
+      "todo read book",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][ ] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "Copy cancelled. Your quest board stays as it is!\nQuest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
+      "No duplicate task is waiting for a yes or no. What's our next quest?",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][ ] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!\nOn the board! I've added this task:\n  [T][ ] buy milk\nNow you have 2 tasks in the list.",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][ ] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!\nQuest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n2.[T][ ] buy milk",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][ ] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!\nOff the board! I've removed this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 2 tasks in the list.",
+      "Deja vu! A task with the same details is already on the board:\n2.[T][ ] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!\nFarewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "clear-all-task-types-and-restart-numbering",
+    "aim": "Immediately remove all tasks including completed tasks, handle the empty list, and allow new tasks.",
+    "commands": [
+      "todo read book",
+      "deadline return book /by Sunday",
+      "event meeting /from Mon 2pm /to 4pm",
+      "mark 2",
+      "clear",
+      "list",
+      "find book",
+      "mark 1",
+      "delete 1",
+      "clear",
+      "todo read book",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [D][ ] return book (by: Sunday)\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] meeting (from: Mon 2pm to: 4pm)\nNow you have 3 tasks in the list.",
+      "One down! I've marked this task as done:\n  [D][X] return book (by: Sunday)",
+      "A fresh start! I've cleared 3 tasks from the board.\nNow you have 0 tasks in the list.",
+      "Your task list is empty. No quests on the board!\nReady for one? Try: todo read book",
+      "No matching quests this time. Try another keyword!",
+      "No task numbered 1 on the board! Type list to check your task numbers.",
+      "No task numbered 1 on the board! Type list to check your task numbers.",
+      "Your task list is already empty. Nothing to clear!",
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "clear-requires-an-exact-command",
+    "aim": "Reject clear arguments and command prefixes without deleting tasks; handle standalone yes/no.",
+    "commands": [
+      "clear",
+      "todo read book",
+      "clear all",
+      "clear1",
+      "CLEAR",
+      "list",
+      "clear",
+      "clear",
+      "yes",
+      "no",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "Your task list is already empty. Nothing to clear!",
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, clear, bye... :)",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
+      "A fresh start! I've cleared 1 task from the board.\nNow you have 0 tasks in the list.",
+      "Your task list is already empty. Nothing to clear!",
+      "No duplicate task is waiting for a yes or no. What's our next quest?",
+      "No duplicate task is waiting for a yes or no. What's our next quest?",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "clear-cancels-a-pending-duplicate",
+    "aim": "Clear existing tasks and discard the pending copy so a later yes cannot restore it.",
+    "commands": [
+      "todo read book",
+      "todo read book",
+      "clear",
+      "yes",
+      "list",
+      "todo read book",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "Deja vu! A task with the same details is already on the board:\n1.[T][ ] read book\nAdd another copy? Type yes/no (y/n), or use another command to cancel.",
+      "Copy cancelled. Your quest board stays as it is!\nA fresh start! I've cleared 1 task from the board.\nNow you have 0 tasks in the list.",
+      "No duplicate task is waiting for a yes or no. What's our next quest?",
+      "Your task list is empty. No quests on the board!\nReady for one? Try: todo read book",
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
   }
 ]
 ```
@@ -775,7 +1054,7 @@ the final addition, demonstrating that task storage is no longer limited by a
 fixed-size array.
 
 Run this case with the `test-ui` runner's ad hoc parameters. It is kept out of
-the JSON block because listing 100 identical setup commands would make the
+the JSON block because listing 100 numbered setup commands would make the
 default test plan unnecessarily repetitive.
 
 ## Storage error message checks
@@ -900,3 +1179,21 @@ to ensure case-insensitive matching does not depend on the system language.
 Use original search numbers to mark a matching task and delete another.
 Restart and verify descriptions, statuses, order, and renumbered search
 results. Tasks excluded from the search must remain in the saved list.
+
+## Duplicate confirmation and clear persistence checks
+
+Load existing completed tasks and equivalent numeric deadline formats. Decline
+a duplicate and verify that the file bytes and modification time remain
+unchanged. Accept a duplicate, restart, and verify that exactly one new,
+unfinished copy was saved. Existing duplicates must never be removed on load.
+
+End input while a duplicate is pending: cancel the addition, exit normally,
+and preserve the saved file. Explicit bye must behave the same way.
+
+Clear a mixed saved list and verify that the file is empty after restarting.
+Then add a task and confirm it is numbered 1 and survives another restart.
+For an already empty list, preserve the existing file bytes and timestamp.
+
+After a loading failure, add an in-memory task and clear it. Report the save
+error and preserve the original malformed file or directory. Clearing tasks
+must not bypass the existing protection against overwriting unreadable data.

@@ -57,6 +57,17 @@ public class Task {
     }
 
     /**
+     * Checks for the same task type and exact description, ignoring completion status.
+     * Subclasses with scheduling details extend this comparison to include those details.
+     *
+     * @param other Task to compare, or null.
+     * @return Whether the type and case-sensitive description match.
+     */
+    public boolean hasSameDetails(Task other) {
+        return other != null && getClass() == other.getClass() && description.equals(other.description);
+    }
+
+    /**
      * Returns this task in the format used by the data file.
      *
      * @return Serialized task data.

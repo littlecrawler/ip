@@ -58,11 +58,12 @@ public class Ui {
 
     /**
      * Reads the next line of user input without interpreting it.
+     * Treats the end of input as bye so a pending confirmation can be cancelled safely.
      *
-     * @return Command exactly as entered by the user.
+     * @return Command exactly as entered by the user, or bye if input has ended.
      */
     public String readCommand() {
-        return scanner.nextLine();
+        return scanner.hasNextLine() ? scanner.nextLine() : "bye";
     }
 
     /**
@@ -125,6 +126,40 @@ public class Ui {
         System.out.println("On the board! I've added this task:");
         System.out.println("  " + task);
         showTaskCount(count);
+    }
+
+    /**
+     * Shows an existing duplicate and asks whether to add another copy.
+     *
+     * @param taskNumber One-based number of the existing task.
+     * @param task Existing task, including its current completion status.
+     */
+    public void showDuplicateTask(int taskNumber, Task task) {
+        System.out.println("Deja vu! A task with the same details is already on the board:");
+        System.out.println(taskNumber + "." + task);
+        System.out.println("Add another copy? Type yes/no (y/n), or use another command to cancel.");
+    }
+
+    /**
+     * Confirms that the pending duplicate was not added.
+     */
+    public void showAdditionCancelled() {
+        System.out.println("Copy cancelled. Your quest board stays as it is!");
+    }
+
+    /**
+     * Reports how many tasks were cleared, or explains that the list was already empty.
+     *
+     * @param count Number of tasks removed by clear.
+     */
+    public void showTasksCleared(int count) {
+        if (count == 0) {
+            System.out.println("Your task list is already empty. Nothing to clear!");
+            return;
+        }
+        String taskLabel = count == 1 ? "task" : "tasks";
+        System.out.println("A fresh start! I've cleared " + count + " " + taskLabel + " from the board.");
+        showTaskCount(0);
     }
 
     /**

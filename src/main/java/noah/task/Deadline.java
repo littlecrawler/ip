@@ -1,5 +1,7 @@
 package noah.task;
 
+import java.util.Objects;
+
 /**
  * Represents a task with an optional due date, time, or free-text label.
  */
@@ -26,6 +28,23 @@ public class Deadline extends Task {
     public Deadline(String description, TaskDateTime by) {
         super(description);
         this.by = by;
+    }
+
+    /**
+     * Compares the description and due value while ignoring completion status.
+     * Equivalent numeric date/time formats match; free-text labels must match exactly.
+     * An omitted due value only matches another omitted due value.
+     *
+     * @param other Task to compare, or null.
+     * @return Whether the other task is a deadline with identical details.
+     */
+    @Override
+    public boolean hasSameDetails(Task other) {
+        if (!super.hasSameDetails(other)) {
+            return false;
+        }
+        Deadline deadline = (Deadline) other;
+        return Objects.equals(by, deadline.by);
     }
 
     /**

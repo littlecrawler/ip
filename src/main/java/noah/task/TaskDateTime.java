@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,6 +104,34 @@ public final class TaskDateTime {
         } catch (NoahException e) {
             return new TaskDateTime(null, null, input);
         }
+    }
+
+    /**
+     * Compares parsed date/time values or exact preserved text labels.
+     * Equivalent numeric input formats match, but an omitted time differs from midnight.
+     * A text label is not interpreted as a date during comparison.
+     *
+     * @param other Object to compare, or null.
+     * @return Whether both objects represent the same date/time or text value.
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof TaskDateTime otherValue)) {
+            return false;
+        }
+        return Objects.equals(date, otherValue.date)
+                && Objects.equals(time, otherValue.time)
+                && Objects.equals(legacyText, otherValue.legacyText);
+    }
+
+    /**
+     * Returns a hash code consistent with date/time and text-value equality.
+     *
+     * @return Hash code of the stored values.
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(date, time, legacyText);
     }
 
     /**
