@@ -1,5 +1,7 @@
 package noah.task;
 
+import java.util.Locale;
+
 // This class was implemented with assistance from OpenAI Codex.
 
 /**
@@ -41,6 +43,17 @@ public class Task {
      */
     public String getStatusIcon() {
         return isDone ? "X" : " ";
+    }
+
+    /**
+     * Checks whether the description contains the search text, ignoring letter case.
+     * Dates, task-type markers, and completion status are not searched.
+     *
+     * @param keyword Nonblank literal text to find in the description.
+     * @return Whether the description contains the supplied text.
+     */
+    public boolean containsKeyword(String keyword) {
+        return description.toLowerCase(Locale.ROOT).contains(keyword.toLowerCase(Locale.ROOT));
     }
 
     /**

@@ -1,6 +1,7 @@
 package noah.ui;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import noah.task.Task;
@@ -93,6 +94,24 @@ public class Ui {
         System.out.println("Quest board, coming right up! Here are your tasks:");
         for (int i = 0; i < tasks.size(); i++) {
             System.out.println((i + 1) + "." + tasks.get(i));
+        }
+    }
+
+    /**
+     * Displays search results using the same task numbers as list.
+     * Shows a helpful message when no description matches the search.
+     *
+     * @param tasks Matching task numbers and tasks in their original order.
+     */
+    public void showMatchingTasks(Map<Integer, Task> tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("No matching quests this time. Try another keyword!");
+            return;
+        }
+        System.out.println("Quest search complete! Here are your matching tasks:");
+        System.out.println("Task numbers are the same as in list.");
+        for (Map.Entry<Integer, Task> entry : tasks.entrySet()) {
+            System.out.println(entry.getKey() + "." + entry.getValue());
         }
     }
 

@@ -1,7 +1,10 @@
 package noah.task;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import noah.exception.NoahException;
 
@@ -92,6 +95,24 @@ public class TaskList {
      */
     public List<Task> getTasks() {
         return List.copyOf(tasks);
+    }
+
+    /**
+     * Finds matching descriptions without changing the list or completion states.
+     * Keeps the original task numbers so results work with mark, unmark, and delete.
+     *
+     * @param keyword Nonblank literal text to find, ignoring letter case.
+     * @return Unmodifiable snapshot of matching task numbers and tasks in list order.
+     */
+    public Map<Integer, Task> find(String keyword) {
+        Map<Integer, Task> matches = new LinkedHashMap<>();
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            if (task.containsKeyword(keyword)) {
+                matches.put(i + 1, task);
+            }
+        }
+        return Collections.unmodifiableMap(matches);
     }
 
     /**

@@ -41,6 +41,7 @@ public final class Parser {
         case "todo":
         case "deadline":
         case "event":
+        case "find":
         case "mark":
         case "unmark":
         case "delete":
@@ -48,6 +49,25 @@ public final class Parser {
         default:
             throw new NoahException(UNKNOWN_COMMAND_MESSAGE);
         }
+    }
+
+    /**
+     * Extracts the nonblank text to look for in task descriptions.
+     *
+     * @param userCommand Full find command entered by the user.
+     * @return Search text with surrounding spaces removed.
+     * @throws NoahException If the command is not find or no keyword is supplied.
+     */
+    public static String parseFindKeyword(String userCommand) throws NoahException {
+        String command = parseCommandWord(userCommand);
+        if (!command.equals("find")) {
+            throw new NoahException(UNKNOWN_COMMAND_MESSAGE);
+        }
+        String keyword = userCommand.substring(command.length()).trim();
+        if (keyword.isEmpty()) {
+            throw new NoahException("What are we looking for, Traveler? Add a keyword. Try: find book");
+        }
+        return keyword;
     }
 
     /**

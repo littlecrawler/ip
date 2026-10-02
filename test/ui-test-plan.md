@@ -110,6 +110,31 @@ loading saved tasks. Check listing, mark, unmark, delete, and renumbering.
 Keep the first 11 machine-readable cases identical to commit 026a9c9 so the
 new formats supplement the original behavior instead of replacing its tests.
 
+### Find descriptions across task types
+
+Aim: Match literal substrings without regard to letter case in todo, deadline,
+and event descriptions, including completed tasks. Dates, time labels, and
+status/type markers must not create a match by themselves.
+
+### Find with an empty list, no matches, or a missing keyword
+
+Aim: Return a helpful no-match message even on an empty list. Require a
+nonblank keyword after the exact find command; findbook and finder remain
+unknown commands. Trim surrounding spaces without changing the stored tasks.
+
+### Find literal phrases and punctuation
+
+Aim: Treat the whole query as one literal substring. Queries such as C++, [,
+and .* must not be interpreted as regular expressions.
+
+### Keep original task numbers in search results
+
+Aim: Show the same numbers as list, including gaps between results. The user
+can mark, unmark, or delete using those numbers. After deletion, search must
+use the updated list numbers and leave unrelated tasks untouched.
+
+The first 16 machine-readable cases remain unchanged from Level-8.
+
 ## Machine-readable cases
 
 Keep this JSON block synchronized with the descriptions above. The
@@ -545,6 +570,154 @@ Keep this JSON block synchronized with the descriptions above. The
       "Quest board, coming right up! Here are your tasks:\n1.[D][ ] old format 2 (by: Mon 2pm)\n2.[D][ ] old format 3 (by: 2pm)\n3.[D][ ] old format 4 (by: June 6th)\n4.[D][ ] old format 5 (by: tomorrow)\n5.[D][ ] old format 6 (by: next week)\n6.[D][ ] old format 7 (by: after dinner)\n7.[D][ ] old format 8 (by: October)\n8.[D][ ] old format 9 (by: no idea :-p)",
       "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
     ]
+  },
+  {
+    "name": "find-all-task-types-and-descriptions-only",
+    "aim": "Find case-insensitive substrings in all task descriptions, including completed tasks, but not metadata.",
+    "commands": [
+      "todo buy milk",
+      "todo Read BOOK",
+      "deadline return book /by 2/12/2019 1800",
+      "deadline pay rent /by Sunday",
+      "event book club /from Mon 2pm /to 4pm",
+      "todo notebook",
+      "mark 3",
+      "find book",
+      "find BOOK",
+      "find Sunday",
+      "find Mon 2pm",
+      "find Dec 2 2019",
+      "find [X]",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] buy milk\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [T][ ] Read BOOK\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] return book (by: Dec 2 2019 18:00)\nNow you have 3 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] pay rent (by: Sunday)\nNow you have 4 tasks in the list.",
+      "On the board! I've added this task:\n  [E][ ] book club (from: Mon 2pm to: 4pm)\nNow you have 5 tasks in the list.",
+      "On the board! I've added this task:\n  [T][ ] notebook\nNow you have 6 tasks in the list.",
+      "One down! I've marked this task as done:\n  [D][X] return book (by: Dec 2 2019 18:00)",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n2.[T][ ] Read BOOK\n3.[D][X] return book (by: Dec 2 2019 18:00)\n5.[E][ ] book club (from: Mon 2pm to: 4pm)\n6.[T][ ] notebook",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n2.[T][ ] Read BOOK\n3.[D][X] return book (by: Dec 2 2019 18:00)\n5.[E][ ] book club (from: Mon 2pm to: 4pm)\n6.[T][ ] notebook",
+      "No matching quests this time. Try another keyword!",
+      "No matching quests this time. Try another keyword!",
+      "No matching quests this time. Try another keyword!",
+      "No matching quests this time. Try another keyword!",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] buy milk\n2.[T][ ] Read BOOK\n3.[D][X] return book (by: Dec 2 2019 18:00)\n4.[D][ ] pay rent (by: Sunday)\n5.[E][ ] book club (from: Mon 2pm to: 4pm)\n6.[T][ ] notebook",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "find-empty-list-and-no-matches",
+    "aim": "Always respond to searches, including on an empty list, and leave tasks unchanged.",
+    "commands": [
+      "find book",
+      "list",
+      "todo read book",
+      "find unicorn",
+      "find book",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "No matching quests this time. Try another keyword!",
+      "Your task list is empty. No quests on the board!\nReady for one? Try: todo read book",
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "No matching quests this time. Try another keyword!",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n1.[T][ ] read book",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "find-requires-keyword-and-exact-command",
+    "aim": "Reject a missing or blank keyword and command prefixes, then accept a correctly spaced search.",
+    "commands": [
+      "todo read book",
+      "find",
+      "find   ",
+      "findbook",
+      "finder book",
+      "find   BOOK   ",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 1 task in the list.",
+      "What are we looking for, Traveler? Add a keyword. Try: find book",
+      "What are we looking for, Traveler? Add a keyword. Try: find book",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
+      "That command isn't in my adventurer's handbook!\nTry: list, todo read book, or bye.",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n1.[T][ ] read book",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] read book",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "find-literal-phrases-and-punctuation",
+    "aim": "Treat the entire trimmed query as literal text, with no regex or multiple-keyword interpretation.",
+    "commands": [
+      "todo plan read book club",
+      "todo read notebook",
+      "todo C++ practice",
+      "todo check [draft]",
+      "todo try .* literally",
+      "find   read book   ",
+      "find C++",
+      "find [",
+      "find .*",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] plan read book club\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [T][ ] read notebook\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [T][ ] C++ practice\nNow you have 3 tasks in the list.",
+      "On the board! I've added this task:\n  [T][ ] check [draft]\nNow you have 4 tasks in the list.",
+      "On the board! I've added this task:\n  [T][ ] try .* literally\nNow you have 5 tasks in the list.",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n1.[T][ ] plan read book club",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n3.[T][ ] C++ practice",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n4.[T][ ] check [draft]",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n5.[T][ ] try .* literally",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] plan read book club\n2.[T][ ] read notebook\n3.[T][ ] C++ practice\n4.[T][ ] check [draft]\n5.[T][ ] try .* literally",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
+  },
+  {
+    "name": "find-keeps-original-numbers-through-edits",
+    "aim": "Use displayed search numbers with mark, unmark, and delete without changing unrelated tasks.",
+    "commands": [
+      "todo buy milk",
+      "todo read book",
+      "todo buy bread",
+      "deadline return book /by Sunday",
+      "find book",
+      "mark 4",
+      "find book",
+      "delete 2",
+      "find book",
+      "unmark 3",
+      "find book",
+      "list",
+      "bye"
+    ],
+    "expectedOutputs": [
+      "On the board! I've added this task:\n  [T][ ] buy milk\nNow you have 1 task in the list.",
+      "On the board! I've added this task:\n  [T][ ] read book\nNow you have 2 tasks in the list.",
+      "On the board! I've added this task:\n  [T][ ] buy bread\nNow you have 3 tasks in the list.",
+      "On the board! I've added this task:\n  [D][ ] return book (by: Sunday)\nNow you have 4 tasks in the list.",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n2.[T][ ] read book\n4.[D][ ] return book (by: Sunday)",
+      "One down! I've marked this task as done:\n  [D][X] return book (by: Sunday)",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n2.[T][ ] read book\n4.[D][X] return book (by: Sunday)",
+      "Off the board! I've removed this task:\n  [T][ ] read book\nNow you have 3 tasks in the list.",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n3.[D][X] return book (by: Sunday)",
+      "Back on the board! I've marked this task as not done yet:\n  [D][ ] return book (by: Sunday)",
+      "Quest search complete! Here are your matching tasks:\nTask numbers are the same as in list.\n3.[D][ ] return book (by: Sunday)",
+      "Quest board, coming right up! Here are your tasks:\n1.[T][ ] buy milk\n2.[T][ ] buy bread\n3.[D][ ] return book (by: Sunday)",
+      "Farewell, Traveler!\nTime to recharge. See you on the next quest!"
+    ]
   }
 ]
 ```
@@ -710,3 +883,20 @@ In an empty working directory, create deadlines with `Sunday`, `June 6th`,
 text deadline, restart, list everything, unmark it, delete a different text
 deadline, and restart again. The text, task order, and completion states
 must survive every save and reload.
+
+
+## Find persistence checks
+
+### Search loaded tasks without saving
+
+Load a data file containing a todo, completed task, legacy date label, and a
+numeric deadline saved as 2/12/2019 1800. Run matching and nonmatching searches,
+a missing-keyword command, list, and bye. The saved file's exact bytes and
+modification time must stay unchanged. Repeat a search in a Turkish locale
+to ensure case-insensitive matching does not depend on the system language.
+
+### Edit found tasks and search after restarting
+
+Use original search numbers to mark a matching task and delete another.
+Restart and verify descriptions, statuses, order, and renumbered search
+results. Tasks excluded from the search must remain in the saved list.
