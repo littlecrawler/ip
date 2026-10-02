@@ -1,6 +1,10 @@
-# Noah project template
+# Noah
 
-This is a project template for a greenfield Java project. Given below are instructions on how to use it.
+Noah is a command-line task manager for todos, deadlines, and events.
+Your trusted companion for the next quest.
+
+[User Guide](https://littlecrawler.github.io/ip/) ·
+[Download Noah](https://github.com/littlecrawler/ip/releases/latest)
 
 ## Setting up in Intellij
 
